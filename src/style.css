@@ -1,6 +1,12 @@
 @import "tailwindcss";
 @tailwind utilities;
 
+:root {
+  --loonstrook-blauw: #2b6cbe;
+  --loonstrook-lichtblauw: #8bb4e4;
+  --loonstrook-lichterblauw: #eff4fc;
+}
+
 .select2-selection {
   height: 40px !important;
   border: 1px solid lightgray !important;
@@ -79,4 +85,8 @@
 
 .verborgen-peil1 {
   display: none !important;
+}
+
+.loonstrook-container {
+  font-family: Calibri, 'Gill Sans', 'Gill Sans MT', 'Trebuchet MS', sans-serif;
 }

@@ -1,15 +1,16 @@
 import { schalenArray2025_1, witte_tabel_2026 } from "./schalen.js";
 import "./style.css";
-import {
-  FormateerGetallen,
-  formatInput,
-  checkInput,
-  checkInputLeegMag,
-  privacyStatementToggle
-} from "./utils";
+import { FormateerGetallen, formatInput, checkInput, checkInputLeegMag, privacyStatementToggle, capitalize } from "./utils";
+import { naam, adres } from "./pdf.js";
 import { bedragen, aov_premies_strings } from "./bedragen";
 import Toast from "./utils";
 import { printTable, Table } from "console-table-printer";
+
+console.info(
+  "%c %cMjepware",
+  'padding-left: 36px; line-height: 36px; background-image: url("data:image/gif;base64,R0lGODlhRQBFAPcAAAAAAAEBAQICAgMDAwQEBAUFBQYGBgcHBwgICAkJCQoKCgsLCwwMDA0NDQ4ODg8PDxAQEBERERISEhMTExQUFBUVFRYWFhcXFxgYGBkZGRoaGhsbGxwcHB0dHR4eHh8fHyAgICEhISIiIiMjIyQkJCUlJSYmJicnJygoKCkpKSoqKisrKywsLC0tLS4uLi8vLzAwMDExMTIyMjMzMzQ0NDU1NTY2Njc3Nzg4ODk5OTo6Ojs7Ozw8PD09PT4+Pj8/P0BAQEFBQUJCQkNDQ0REREVFRUZGRkdHR0hISElJSUpKSktLS0xMTE1NTU5OTk9PT1BQUFFRUVJSUlNTU1RUVFVVVVZWVldXV1hYWFlZWVpaWltbW1xcXF1dXV5eXl9fX2BgYGFhYWJiYmNjY2RkZGVlZWZmZmdnZ2hoaGlpaWpqamtra2xsbG1tbW5ubm9vb3BwcHFxcXJycnNzc3R0dHV1dXZ2dnd3d3h4eHl5eXp6ent7e3x8fH19fX5+fn9/f4CAgIGBgYKCgoODg4SEhIWFhYaGhoeHh4iIiImJiYqKiouLi4yMjI2NjY6Ojo+Pj5CQkJGRkZKSkpOTk5SUlJWVlZaWlpeXl5iYmJmZmZqampubm5ycnJ2dnZ6enp+fn6CgoKGhoaKioqOjo6SkpKWlpaampqenp6ioqKmpqaqqqqurq6ysrK2tra6urq+vr7CwsLGxsbKysrOzs7S0tLW1tba2tre3t7i4uLm5ubq6uru7u7y8vL29vb6+vr+/v8DAwMHBwcLCwsPDw8TExMXFxcbGxsfHx8jIyMnJycrKysvLy8zMzM3Nzc7Ozs/Pz9DQ0NHR0dLS0tPT09TU1NXV1dbW1tfX19jY2NnZ2dra2tvb29zc3N3d3d7e3t/f3+Dg4OHh4eLi4uPj4+Tk5OXl5ebm5ufn5+jo6Onp6erq6uvr6+zs7O3t7e7u7u/v7/Dw8PHx8fLy8vPz8/T09PX19fb29vf39/j4+Pn5+fr6+vv7+/z8/P39/f7+/v///yH5BAAAAAAALAAAAABFAEUABwj/AEXNGgXq1i5evRD66tVrV65buCDaoiUrVixZsFydEpUpk6lKhfJk0RJnjyJJrmbZupVrl65cuGLWojVrlqyaGGPBgqVTlk9Vl+aIislL165eMH3dqsW0IkZYsnLN+oTpT5oogTY18VJDxQwwU5hQasXqFstdBmn10kXTIixaO2G9ovi2px8rfmLh8uWLFy5dRndFtMWUYiy4rdSE2ZJjBAo5Rj64wFFCR48VRQyNgjULYkSmtnQt1Umrba2ar14djjWrDJ5Nppiy/Iur1tJZpUtH/ZTnSwsgKk64WIEDhAUNKTTceDGChZY5lVLRqkW4Ji1bEWnaukjrlaudcGXj/4mU6JCnsoBvTc+N+1aqUKqmxHjR4kQHFylArNhQAUMJEyZUkAEIINxAhR2SZJLKLK/gRl0utcgCF068/LLQLb609EcfYNgRySiyLHVdhDcd5gkdiHBRgQjDccDBCCGIIMIGGphwQgkZYJDBBhNMUEEOUbgxyi1QTbfSTODNEswyyzCjDDLKFDMMHGeIgQckqtDy3Ss5VVRLKX6sYUUHGngAggoZaIACCf5xIMIMH3ywQQkbSODAAw9k4EEQiKRiiizV4UaYLUoys0wzzzjTZDPJ/DFJI5icUosnmIxCCis6qRZLH2R0sUIIIYywwgschBBDCB90gAEJJGjAAQkrcP8gAQQRUGBBBB6EUccjqlA30Sy+4mJMM8soowyTzDjjTCKhrOJKKZT0IcklpqTmXSyOoNCCCSKksAIKKICgwQgmUPCBBRh44AEGEnhAgggSPDABBRTgiYILbGRy2Ezr1fJLMsYeiyg0ycYRiSeTPKIHHY+Q4kpqrbRSCxYQyOiYCyN4UMEEGlyQgQWvctDBBRJUYMIIFExwAQYWVBCBBBwYgccoDQqKHTHGGAOlos0wk+gTYJzxRR1fwFGIJqW0oooqszwyQ8YhmKDCCB3MSq8G/OHwggcWXDBBBjCM4OoEOuZYgblRWEIdbkYOc8wxycSNzDPQPPMMElykUcUVVXj/QQckpKjSCiyifCGECBiocAMKFvT4ALrdisADCq5u4IEINHggZ9cZiEACjhXcwAgrtrSSik6+JCNlL8kcUwwyykLDRBZIKEFFG2zoYUglnpBSih1fqECBCD3AEAIFEkQQgYAryBDCCRt0gEIMKZjQAgcfhODBBSVMHQIIE4yQRSCgIKJIJqgYAwwup9ByyyzAKPNMNM0ooUUVTYjhxhv7u8HIIXvYQhJMwIEa3IAEskLeBrCHg8bwyAQ7GMILYuCCD4igBSwoAQs6wAEUjOACEADBFNJQBjUQwhS/qMUrRrGJRHgiFr5gRjPqBwUnEKEKX+iCFqyABTKUASw+GIEK/4rAAhFkwEceGFUJjDAEEoAgAzaQQhOA4IMYnCAGO8CBC0jwAQ6cIAQsA0ENlnAFNfiBEps4RSckcYc8QEITuzCGoXxQhCMUoQhQeAIToCAFK/AQCTPYAA+SkDEXgWAyOMABFqzgAhOw4ApxOAMWqKAEHvgACkuQgQm6SIKMac4EPcgCHNrghj0sghGDoMMe+qCJVQjjGMTowRCCcAQoKOEJUvDCFrBQhSUQoQQd6EEP1rSCFsgAB0FYQhXqQAcq/IAKh1iEHurwhjFQAYdT0MELQCCCE6DgAxjYQAhk8IQxZGELbvDDHPKwBzzkoRGhoMgvfgCEIQghCVLoYxe6kP8FJyQBCJuUgRBugMUc/EAIR+DCGhpxiT64ERSd0EQjCnEHNFBpCj9gTglkAAMPuKoDJwiCFaiABTOggQxqsAMc8mAIRywiFLfggWWAkIQiDDIMUojCEo6QAxaY4AZRQAITsNCFKlDhCn97xS5SsQq5uIITkFgEIf5whzVsgQYnSMEVYzACDmhAAxl4Ad648AUymIEMbKBDHOjQBjpkIhQ2sAEOgMCDF9zgCVE4QhSq4IQdzEAFR/BCWwPBBzqoQQ+ZuMUzmPELYuwCFqawhCMUQQhB3OEMUwCCFUvggq0dsVYjmIIZrKAFOMQBDWs4wxrcQEI65KEGOLBBD2RAgx//NMF+ZfiCE3IAWzggAhKZwIQiDJGIxDrjGcogxjF+MQtSVOIQhgiEH+BghijwgAUxMAEMTqCBCUAAAg3QwBS+kAQsuMEMYBgpF8pghZyaQQc/+EFsa8ADIWQBDVzgwhKAIAMmTOISnNCEJioBiU60AheLJcYwkOELWHAiEoUQxB4MGwYsAAEIP2DBCxgXAVo1IANP2EIVomCFKURhClZoghOcUIQohOEHRaCBDPwqgyFIgQpTKOoOToAGTPj4EgLehHRStwtaEGMZukCFJAwx1Ty8IbVk8MIUbOACFowgAy6LgAM0QAU34PQItuuCEppQYiR4AQw3qAEMjgnbHuhV/wpYcAINUOAGRzwCEpj4RCg+wQr33cIVthjGL2QBikQMIhCCmAMa0tAGNWShCCpAwQlA0AEKfPcBHbACGsRABSM4gahZ+IIXruCFMmihBZ2lAQ4sQwQpTKGGRMBBDNrAiEU84hKgEMUnTOEs1eBCMKzARCMQgYhCzEENb0gDGbRghLCRwANYlsAEHsCBrYjhC1BgQhS4oAWSNFoMWTABCmBgAyAIwQhN2IITmjDLHdjAt4Z4xCZE4QlQmAIVqVDFW3QxC1Z0ghKMYMQe3LCG1FaYCTdYwQjEdQGSMSADP3jCF6ywBCQswQlSIIMdyiAGLXDhBCuowQ6IYAQoXOEKSf8wwg2WkwM2+CEQjbBEJ0Ch51Kc4hSwqMVDYuHcRRyiDnAgOBrMIAYx98CnhXxAAopwBvwxAQk8oCkStnCGJmShpJI2gQ2GYIQjLGEIOYgtDGYABDbsYRAM9UQocq2Ke69C58CIxSYWUYg/2EEPE27DGtCQ2yn0IAUl6KoD0CCJMSgzCv/EKxOinO6TksAEJWiBDnjQAyDQ4AY+gEEDgXAGPPghEZcQhehHYYrSPywXvMhEIgIxCEMwQhKDuMMc9M4GM2zhCC9IQQo6MAVYZKHcVLACxrdghbxtIQpX54KNxA2DHgQhCEboQQ10MAQeEMELcvhDJDzCClWcIt+lUEX/KlwRCT0EAhGS8MQoIgEIPOCBtW5ogxiikIMZjH0RYSABUMnAhSIsYa9ScAVcYAVQwEeSVgIhkAI5oAOrdgP3lAQ/wANU8AZ/sAjRYS1bUgqjgAmHoAgyZwqhQB6BoAezR0pr0AVYIAQ00AJBUAc6UANs8AZ0UAb3pARHgAR7VYBUIAWQxyonMAMrAAM3gG5CMEs5cARqwAeEkAiTIAqpUAqn4wqgYAmSUAmWEAmO0AiAIAdnsBhfIAZm0Aa5NQZKkAM7YAVVQANwkEqXRQRDcARGkAREEARI0AR5RC7FFAMwAAM6QAQ6dQRM8APNZwYv1wfaB2A+RgmPoAh8AAZN/+ADQZAEOuAD1zQFXkAGeIAGY0AG5hQGJIYER2AGXnAGeeAGQlAEXaeCNYAEcbgEI3ACV/QCL1BftwSI0ScDPYAGgBAIdyAIi5AIhvAHgFAIgMAGQuABELAiP+gEWwAFV1cHbBAGXsAG8XcGVPAEQ7ADNKAEbjAIaeADO+ADQLADIrcETcAETCACH2ACE0QDO9ADRYAEQGAEIzcETHAGe1AHfVAHRYUFXnAHnNIDVFMqncQCKcACMqADSMAGdYAFFiUHYqgF2qYERhAJlSAJZVADLIADQhCB9eR1TiACHbCRLVADQTAESBAEOwAERJAEOgUGZsAFA6QnMSAEX7AFRP8AAyXARRRQARKwASjQBFQABF4QCXJQBnLwBmrABmrABVuQB3AACamQCZLQBS2gAnPVAzjAA/WFBFDgQTgAAylgfUJABD6QA0WQBBWXBFTAAyNQARBwJxNQAjhwBFUgBS3gUStTA1jgTmPABeXBBtR4BiaVBlcQBn2wB6awCZkwBlrAAkGIAzRQA2HHA0zQBCoQA0PQAjagA/MhA5xJBBHofDsAmiqwAQ/gAAsgASmgBY6gB1CwcixQA1TAbTgGc3ogBmZVBiblBVKwBXMQCKRACV+AB02AAggpmTMgAzfQhzygAllkA0JQA1akYTPGA5PpAz+ABD5wRA+QjBFwAoP/wAqXYAdroAZqAJFhsF6HQAmEoAZlgAZVMgZgQAUmFwaHMAp9IAiEEJa0tYInwJx6WAMpAAM5IARBoJU1sKD0pWbNWZYtEAL4MTUU4AOYwAqiUAiBcAivFwmUsAie8AmTkAdJyQZRhgVXEAVRQAVhYGeW8AhTQAM6QAMpoALPxgItsAIxUAMncHkzkAPPR5k6sAPu1gITxAI+cJnZGKEkoAaPsAqloAjmowiUIAqllwpzJwgO5QZFdwV8NAVU8AV7AAmSoAar5gNblAIhACskgAI9YAMwsC0qgJDLqQNFkAM2wAIoIAMnMAJKkAZc0AQq2QNqkAeJoAqyAAmGYAiD/5AIj4AJmTAJjIAIf6AHdyAHaeAFWUBiI1YFaSAHaCAEL+ADPBADxTQqKKBBNSADPFACJXACIhCENSAETsAEODACM7AEYwBUa+BDYZAGgHAIeXAIqdAKkHAIfpAHeRAHbBAHfiAIgOAHe3AHVDIGWMBHVfAEeKUEPoACdpUDOfACM3ACJgACl3MvNKACV0luC4gEYkAHUpACPdAIn6AFT+AGdcAHfeAIlHAIdkA+rcAJIzgIelAGXhAG+qMHf5CPb1AGplYFV5dtQbA4ODp2C+oCqpImJCCutPUCOzCxQsADQVBKcUB5mFAKX/AEZ2AHgHASkqAHXkAImzALqOAHf/9AjGawBnzQKWcAB3NAB2wwBl2wBVfQXk2wUzwwAzOQAi0wAy9QAyXAARhwARxAAzNgtQdpAxwlBJqHBXRACE/AAn4ACAOIBnXAof8jWofwCbgwonRAB1ygBPGWBmD6BaSkBkWnqX50W0kgBDogAypQo00rA5SWODQAAxTUATBSQDngAvCIBnnAAy2wBWwwB2LABXMwCIiwCHBwBACJCJQQCGYgBTtAAj/gCJBgB10wBU/QBahFn2HQBVdABU5wg0SQAzCwAiwwduTIoyNAoOOWAiJgAuJEeTcwjkoABXpYBIx2BVJgBniwsCJmB2NQBnDwBUMgAiWQAkrgCIwQCG//MAVF0ARjwAY/BAZckK1N0HVE4FcwQAM+cARD0AM6wFlQo5ErIJLNN4lydQM2UAPTkwRTsL5asAZ04AZYoAVpoAQoaQRUhriBgAmvyQZRUE+USwZikFtS4ARLsARM4LcyEAM+gAQQSANWNCMYEAIrAHgvYgMzsAMugAI04AI5cANMKwMkZ31acAZlUAUohQQ38I4y4AItUAegMAhk8ARBAAM1YARIWQZjcAbNuARqeQRCgAM3gAM/MASZ5wJx2lW20k1mUgNaiwPeIq5libszgAR/twNN8AXSyD9TIAQ9kAO0NQWC0AU9MAMx8AEPIANrIJhnwIlZYEsXZwQqGcST/+cC3aNVT9Q42isqNzADFyurWdAFTrB1SUADPKAEQjBeZwCNXeAFSkC/OWAEP0B2QLACBXAAdHCpirYFYXAFSlA7NhgEOhBXNMACoSICGtAB6sJBr3gCLzDDM9BI08MEazAGTMACUHAEOKAEZMwE67UGXIDJ/muGPDAEpCYGN6AATAAIegAHdGCtXUAFSFAERIAEQ/ADWRSukCcDsvgCCNgBGfA5JKAC2wV5z+MCQrBTa5IDNBAEXLCyhOBlYKAFSuACHsACChkFTYCElEAJnwAIh8UGcCAGxYeNW8xE8sUDP1ACNIAFZ+AGcJAG9PkERkAEIgAC3lICH6A5r6iHG//GATkgB5IACktT0WQQBmR4mnNSfyUABZrQCdpwDs2gCY1muVKQBUtQBEGwxSGLA0WgA0EAB4GwCJEwCYqICINACHjwLgf5RSNQ1jFAA8WMA14wCt/RCg+TCpOwBl9QBlswBCjAARp0A2LgB34AC+AwDuGADaYweyKm0D/QA1vszjqAUG9QCJJgCZcQCZAQCZvgCQHmLXroLeOqODiwAkTgCBHyMBfBE6DwB1wwBmPQjOe4BXcQCHVwBlyACtfwDeEADrFgB1egBVdABON4YeC4AzoQBoQwCcFlCZQAYJZSCqSQAkScozxwAyZwtQd5Cd2REhOxNqrACFK2BWagBmP/UFZpsAVxCwNE0AjLMA7boAqVMLRMAI6W5AOLnQM94AeW8AmbMAmRcAmjkAqowArddzI1qrVB2AII+AhQESK5wBbbISGgAAdKYAVbIAZeMGJGYARAsKBGUARxsAusIAt28Jvcitg+UAPx1QJdkAmfQCmUECmu4AqrwAqqEXgGagMmEHIEtAYkAhEOwRC6gB2tQAjZNgVacHxTBARW7bMS+Td7kL4sxgM7kLTbfAM8AAl7VgmUgDStoBNuYQuA1wJhOQItEAMscgqs4Aq18Gu/wOO7EBq1kAlmAIhS0AVhkENiUAeLoAmUoAdyHmXoFgROrk2n/AMxYAef8AmRfQnw/5ESsZAaoQED+jxnQnQCFwAHrLAgv7YQfPELguEXpYAHR5AEIdZWhPAI6mcpj/AGRwt1PfCONpACMxAE/KUFha4JkqAJOt0Ks7Doh8EX8yUDKxCEIIACokAKppDlBoHpvHAQulALrJAIUZCWVbAGgfAImQAKm3AJkNAIZ7DqWQTczNF8PcDJVdoJlpBnNMMZFxELtuALwNCZPgq4F9AGobAJocBUnfESCf5rs5ARk4AFN4gEQ+OoizAIrXcHSmADN5ADPkCjF6TwOaACgVAK844JuKYKrpDlrhALLNELwKC7lDwDLAACNDBgl7AJoyAKrAALtlARNOETqqEJYXCD8f+IBWnwBjavBl6ABDRghlrELS3QA82JAmaACqKwCZhQCZlACqjw4i1uEbZQIaxCnTCwQXRQCY/gCJjQCZxAMxdvEYbxHaFQBkpQyllkBEYlBUWglZ25tO/iAmRswzlw8p/ACZWgCeqHCvgG4xKDC09f1sfMAh+QA5iwCIvAr5cQoktfrGSR8RbfCWmAjj9QA6OC2DxQw2nWAiTwPIj7AjagAh+gCKVg2ZggCSn+CUuP94JzGLZgCyBQAmtiRHdwCYnQCHYmCZvQCWpH5qzg1hffCqKwBrU6BJ2vAjJawyG8AqzSAjDgAm7vAhlwBqfwCZ3QCXWvCSh+b6hwc6cTIbFJYEEyghnRdEqoWwmYwAm5rwr+HTGmowl3YAVPUAQ7sPzMKZkU1AJG2lkvEMIpgASMkAmcsAkAsSlTJk6ePokahVDUKVWsWK0KCAA7"); background-size: 32px; background-repeat: no-repeat; background-position: 2px 2px; ',
+  "background:#D40629; padding:0.2em 0.5em 0.1em 0.5em; border-radius:0.5em; color: white; ",
+);
 
 const schalen = schalenArray2025_1;
 const schaalDropdown = document.getElementById("schaal-keuze");
@@ -119,7 +120,7 @@ function loadFromLocalStorage() {
   document.getElementById("ouderverlof-aangepast-kortingspercentage").value = ouderVerlofOpslaan
     ? (data.ouderverlofAangepastKortingspercentage ?? "")
     : "";
-  
+
   document.getElementById("keuze-eerst-analyse").checked = data.keuzeAnalyse ?? false;
 
   // schaalBedragEl.value = schaalDropdown.value;
@@ -185,17 +186,14 @@ const vandaag = new Date().toISOString().split("T")[0];
 // console.log(vandaag);
 
 // peildatumEl.value = vandaag;
-const selectedOption =
-  schaalDropdown.options[schaalDropdown.selectedIndex];
+const selectedOption = schaalDropdown.options[schaalDropdown.selectedIndex];
 
 let schaalBedrag = selectedOption.dataset.salaris;
-
-
 
 $("#schaal-keuze").on("change", function () {
   const selectedOption = this.options[this.selectedIndex];
   const salaris = selectedOption.dataset.salaris;
-console.log(' salaris: ', salaris);
+  console.log(" salaris: ", salaris);
   document.getElementById("inputBasisSalaris").value = salaris;
   bedragenInConsole();
   maandBedragBruto();
@@ -204,24 +202,20 @@ console.log(' salaris: ', salaris);
   updateBerekeningen();
 });
 
-document.getElementById("inputBasisSalaris").value =
-  selectedOption.dataset.salaris;
-
+document.getElementById("inputBasisSalaris").value = selectedOption.dataset.salaris;
 
 const wtf = () => {
   return wtfEl.value ? parseFloat(wtfEl.value.replace(",", ".")) : 0;
 };
 
 const normBedrag = () => {
-  return parseFloat(schaalDropdown.value);
+  return parseFloat(schaalBedrag);
 };
 
 const maandBedragBruto = () => {
-  console.log('maandbedrag: ',schaalBedrag, wtf());
+  // console.log("maandbedrag: ", schaalBedrag * wtf());
   return parseFloat(schaalBedrag) * wtf();
 };
-
-
 
 const maandBedragEl = document.getElementById("salaris-uit-uren-gewerkt");
 
@@ -408,9 +402,31 @@ const brutoInhoudingBerekenen = () => {
 };
 
 const nettoVergoeding = () => {
-  return document.getElementById("input-netto-vergoeding").value
-    ? parseFloat(document.getElementById("input-netto-vergoeding").value.replace(",", "."))
+  return document.getElementById("input-netto-vergoedingen").value
+    ? parseFloat(document.getElementById("input-netto-vergoedingen").value.replace(",", "."))
     : 0;
+};
+
+const nettoVergoedingBerekenen = () => {
+  return (
+    document.getElementById("input-netto-vergoedingen").value &&
+    parseFloat(document.getElementById("input-netto-vergoeding").value.replace(",", ".")) > 0 &&
+    document.getElementById("input-netto-vergoeding").value !== ""
+  );
+};
+
+const nettoInhoudingen = () => {
+  return document.getElementById("input-netto-inhoudingen").value
+    ? parseFloat(document.getElementById("input-netto-inhoudingen").value.replace(",", "."))
+    : 0;
+};
+
+const nettoInhoudingBerekenen = () => {
+  return (
+    document.getElementById("input-netto-inhoudingen").value &&
+    parseFloat(document.getElementById("input-netto-inhoudingen").value.replace(",", ".")) > 0 &&
+    document.getElementById("input-netto-inhoudingen").value !== ""
+  );
 };
 
 const periodiekeVakantietoeslag = () => {
@@ -615,6 +631,9 @@ const wtfSeniorenverlof = () => {
 };
 
 const kortingSeniorenverlofBasis = () => {
+  if (!document.getElementById("seniorenverlof-actief").checked) {
+    return 0;
+  }
   const soort = soortEl ? soortEl.value : "Geen";
 
   if (soort === "Geen") return 0;
@@ -635,6 +654,7 @@ const kortingSeniorenverlofExtra = () => {
   wtfSenXtra = wtfSeniorenverlof() - 0.10247 * wtf();
   return wtfSenXtra * normBedrag();
 };
+
 //#endregion SENIORENVERLOF
 
 //#region OUDERVERLOF
@@ -829,10 +849,20 @@ const belastbaarInkomen = () => {
   return parseFloat(optellen - aftrekken);
 };
 
+const belastbaarInkomenZonderVerlof = () => {
+  const optellen =
+    maandBedragBruto() + ziektekostenBedrag() + aanvullendeZiektekostenBedrag() + ehboVergoeding() + bhvVergoeding() + brutoVergoeding();
+
+  const aftrekken = aopBedrag() + pensioenBedrag() + aovBedrag() + brutoInhouding();
+
+  return parseFloat(optellen - aftrekken);
+};
+
 const loonheffing = () => {
-  const bel_inkomen = belastbaarInkomen();
-  const gesorteerd = witte_tabel_2026.sort((a, b) => a.tabelloon - b.tabelloon);
-  const met_korting = document.getElementById("loonheffingskorting").checked;
+  let bel_inkomen = belastbaarInkomen();
+  if (isNaN(bel_inkomen)) bel_inkomen = 0;
+  const gesorteerd = Array.isArray(witte_tabel_2026) ? [...witte_tabel_2026].sort((a, b) => a.tabelloon - b.tabelloon) : [];
+  const met_korting = (document.getElementById("loonheffingskorting") || {}).checked;
   let resultaat = null;
 
   for (let i = 0; i < gesorteerd.length; i++) {
@@ -842,8 +872,83 @@ const loonheffing = () => {
       break;
     }
   }
+
+  if (!resultaat) {
+    resultaat = gesorteerd.length > 0 ? gesorteerd[0] : { met_lhk: 0, zonder_lhk: 0 };
+  }
+
   return met_korting ? resultaat.met_lhk : resultaat.zonder_lhk;
 };
+
+const loonheffingZonderVerlof = () => {
+  let bel_inkomen = belastbaarInkomenZonderVerlof();
+  if (isNaN(bel_inkomen)) bel_inkomen = 0;
+  const gesorteerd = Array.isArray(witte_tabel_2026) ? [...witte_tabel_2026].sort((a, b) => a.tabelloon - b.tabelloon) : [];
+  const met_korting = (document.getElementById("loonheffingskorting") || {}).checked;
+  let resultaat = null;
+
+  for (let i = 0; i < gesorteerd.length; i++) {
+    if (gesorteerd[i].tabelloon <= bel_inkomen) {
+      resultaat = gesorteerd[i];
+    } else {
+      break;
+    }
+  }
+
+  if (!resultaat) {
+    resultaat = gesorteerd.length > 0 ? gesorteerd[0] : { met_lhk: 0, zonder_lhk: 0 };
+  }
+
+  return met_korting ? resultaat.met_lhk : resultaat.zonder_lhk;
+};
+
+const brutoSalaris = () => {
+  const optellen =
+    maandBedragBruto() + ziektekostenBedrag() + aanvullendeZiektekostenBedrag() + ehboVergoeding() + bhvVergoeding() + brutoVergoeding();
+
+  const aftrekken =
+    kortingSeniorenverlofBasis() +
+    kortingSeniorenverlofExtra() +
+    brutoInhouding() +
+    kortingOuderverlof() +
+    kortingEhboBhvOuderverlof().ehbo_korting +
+    kortingEhboBhvOuderverlof().bhv_korting;
+
+  return parseFloat(optellen - aftrekken);
+};
+
+const brutoSalarisZonderVerlof = () => {
+  const optellen =
+    maandBedragBruto() + ziektekostenBedrag() + aanvullendeZiektekostenBedrag() + ehboVergoeding() + bhvVergoeding() + brutoVergoeding();
+
+  const aftrekken = brutoInhouding();
+
+  return parseFloat(optellen - aftrekken);
+};
+
+const nettoSalaris = () => {
+  const optellen = brutoSalaris();
+  const aftrekken = loonheffing() + aopBedrag() + pensioenBedrag() + aovBedrag();
+
+  return parseFloat(optellen - aftrekken);
+};
+
+const nettoSalarisZonderVerlof = () => {
+  const optellen = brutoSalarisZonderVerlof();
+  const aftrekken = loonheffingZonderVerlof() + aopBedrag() + pensioenBedrag() + aovBedrag();
+
+  return parseFloat(optellen - aftrekken);
+};
+
+const teBetalenSalaris = () => {
+  return nettoSalaris() + vergoedingWwk() + thuiswerkVergoeding() + telefoonvergoeding() + nettoVergoeding() - nettoInhoudingen();
+};
+
+const teBetalenSalarisZonderVerlof = () => {
+  return nettoSalarisZonderVerlof() + vergoedingWwk() + thuiswerkVergoeding() + telefoonvergoeding() + nettoVergoeding() - nettoInhoudingen();
+};
+
+// console.log(brutoSalaris());
 
 document.querySelectorAll(".form-control").forEach((input) => {
   input.addEventListener("change", () => {
@@ -1049,7 +1154,7 @@ const vergoedingWwk = () => {
       return 0;
     } else {
       if (checkInput(reiskostenWwkInputEl.value)) {
-        return parseFloat(reiskostenWwkInputEl.value);
+        return parseFloat(reiskostenWwkInputEl.value.replace(",", "."));
       }
     }
   }
@@ -1107,6 +1212,10 @@ const telefoonvergoeding = () => {
 };
 
 // #endregion NETTOVERGOEDINGEN
+
+//& #region ONBETAALD VERLOF
+
+//& #endregion ONBETAALD VERLOF
 
 // #region LOCAL STORAGE OPSLAG
 const saveDataEl = document.getElementById("save-data");
@@ -1220,7 +1329,7 @@ document.querySelectorAll(".dubbel-check").forEach((el) => {
   });
 });
 
-$("#keuze-eerst-analyse").on("change", function () { 
+$("#keuze-eerst-analyse").on("change", function () {
   saveToLocalStorage();
 });
 
@@ -1307,6 +1416,7 @@ function bedragenInConsole() {
   );
 
   // table.addRows({ soort: "AOP", waarde: Math.round(aopBedrag() * 100) / 100 }, { seperator: true });
+
   table.addRow({ Unit: "Normbedrag", Bedrag: Math.round(normBedrag() * 100) / 100 }, { separator: true });
   table.addRow({ Unit: "Maandbedrag bruto", Bedrag: Math.round(maandBedragBruto() * 100) / 100 }, { separator: true });
   // table.addRow(
@@ -1335,6 +1445,7 @@ function bedragenInConsole() {
   table.addRow({ Unit: "Telefoonvergoeding", Bedrag: Math.round(telefoonvergoeding() * 100) / 100 }, { separator: true });
   if (thuiswerkVergoedingBerekenen())
     table.addRow({ Unit: "Thuiswerkvergoeding", Bedrag: Math.round(thuisWerkVergoeding() * 100) / 100 }, { separator: true });
+
   const tableVerlof = new Table();
   if (seniorenverlofBerekenen())
     tableVerlof.addRow(
@@ -1371,25 +1482,203 @@ function bedragenInConsole() {
       { separator: true },
     );
 
+  const tableBrutoNetto = new Table();
+  tableBrutoNetto.addRow(
+    { Type: "Bruto salaris", Bedrag_met: Math.round(brutoSalaris() * 100) / 100, bedrag_zonder: Math.round(brutoSalarisZonderVerlof() * 100) / 100 },
+    { separator: true },
+  );
+  tableBrutoNetto.addRow(
+    { Type: "Netto salaris", Bedrag_met: Math.round(nettoSalaris() * 100) / 100, bedrag_zonder: Math.round(nettoSalarisZonderVerlof() * 100) / 100 },
+    { separator: true },
+  );
+  //tableBrutoNetto.addRow({ Type: "Woon-werk", Bedrag_met: Math.round(vergoedingWwk() * 100) / 100, bedrag_zonder: Math.round(vergoedingWwk() * 100) / 100 }, { separator: true });
+  tableBrutoNetto.addRow(
+    {
+      Type: "Te betalen salaris",
+      Bedrag_met: Math.round(teBetalenSalaris() * 100) / 100,
+      bedrag_zonder: Math.round(teBetalenSalarisZonderVerlof() * 100) / 100,
+    },
+    { separator: true },
+  );
+
   table.printTable();
   tableGrondslagen.printTable();
   tableVerlof.printTable();
+  tableBrutoNetto.printTable();
 }
 
 bedragenInConsole();
 
 testBtn1.addEventListener("click", () => {
-  bedragenInConsole();
-  saveToLocalStorage();
+  console.log(naam(), adres());
 });
 
-document.getElementById("sophia").addEventListener("click", () => {
-  Toast.success("Hallo Sophia! 👋");
-});
+function resultaatBerekenen() {
+  const brutoZonderVerlof = brutoSalarisZonderVerlof();
+  const nettoZonderVerlof = nettoSalarisZonderVerlof();
+  const teBetalenZonderVerlof = teBetalenSalarisZonderVerlof();
+  const brutoMetVerlof = brutoSalaris();
+  const nettoMetVerlof = nettoSalaris();
+  const teBetalenMetVerlof = teBetalenSalaris();
+  const verschil = teBetalenZonderVerlof - teBetalenMetVerlof;
+  console.log("naam :", naam(), "adres:", adres().straat);
+
+  $("#resultaat-naam").text(naam() !== "" ? naam() : "");
+  $("#resultaat-bruto-salaris-met-verlof").text(FormateerGetallen.valuta(brutoMetVerlof));
+  $("#resultaat-netto-salaris-met-verlof").text(FormateerGetallen.valuta(nettoMetVerlof));
+  $("#resultaat-te-betalen-met-verlof").text(FormateerGetallen.valuta(teBetalenMetVerlof));
+
+  $("#resultaat-bruto-salaris-zonder-verlof").text(FormateerGetallen.valuta(brutoZonderVerlof));
+  $("#resultaat-netto-salaris-zonder-verlof").text(FormateerGetallen.valuta(nettoZonderVerlof));
+  $("#resultaat-te-betalen-zonder-verlof").text(FormateerGetallen.valuta(teBetalenZonderVerlof));
+  $("#resultaat-verschil").text(FormateerGetallen.valuta(verschil));
+  $("#resultaat-kost").text(FormateerGetallen.valuta(verschil));
+
+  loonstrookVullen();
+}
+
+function loonstrookVullen() {
+  const brutoMetVerlof = brutoSalaris();
+  $("#loonstrook-naam").text(naam() !== "" ? naam() : "Naam");
+  $("#loonstrook-straat").text(adres().straat !== "" ? adres().straat : "Straatnaam");
+  $("#loonstrook-top-bruto").text(FormateerGetallen.valuta(brutoMetVerlof));
+  $("#loonstrook-top-te-betalen").text(FormateerGetallen.valuta(teBetalenSalaris()));
+
+  console.log(brutoMetVerlof)
+}
+
+loonstrookVullen();
+
+// resultaatBerekenen();
 
 // updateBerekeningen();
 
+const modalSoortStrook = document.getElementById("modal-soort-strook");
 
-document.getElementById("btn-privacy").addEventListener("click", privacyStatementToggle);
-document.getElementById("sluit-privacy").addEventListener("click", privacyStatementToggle);
+document.getElementById("info-type-strook").onclick = () => {
+  modalSoortStrook.classList.remove("hidden");
+  modalSoortStrook.classList.add("flex");
+};
 
+document.getElementById("closeModal").onclick = () => {
+  modalSoortStrook.classList.add("hidden");
+};
+
+modalSoortStrook.addEventListener("click", (e) => {
+  if (e.target === modalSoortStrook) {
+    modalSoortStrook.classList.add("hidden");
+  }
+});
+
+const modalPrivacy = document.getElementById("modal-privacy");
+
+document.getElementById("btn-privacy").onclick = () => {
+  modalPrivacy.classList.remove("hidden");
+  modalPrivacy.classList.add("flex");
+};
+
+document.getElementById("sluit-privacy").onclick = () => {
+  modalPrivacy.classList.add("hidden");
+};
+
+modalPrivacy.addEventListener("click", (e) => {
+  if (e.target === modalPrivacy) {
+    modalPrivacy.classList.add("hidden");
+  }
+});
+
+const modalAfwijkendePercentageOv = document.getElementById("modal-info-afwijkend-percentage-ov");
+
+document.getElementById("btn-info-afwijkend-percentage-ov").onclick = () => {
+  modalAfwijkendePercentageOv.classList.remove("hidden");
+  modalAfwijkendePercentageOv.classList.add("flex");
+  console.log("test afw perc");
+};
+
+document.getElementById("closeModal-afwijkend-percentage-ov").onclick = () => {
+  modalAfwijkendePercentageOv.classList.add("hidden");
+};
+
+modalAfwijkendePercentageOv.addEventListener("click", (e) => {
+  if (e.target === modalAfwijkendePercentageOv) {
+    modalAfwijkendePercentageOv.classList.add("hidden");
+  }
+});
+
+const modalResultaat = document.getElementById("modal-resultaat");
+
+$("#btn-resultaat").on("click", function () {
+  resultaatBerekenen();
+  modalResultaat.classList.remove("hidden");
+  modalResultaat.classList.add("flex");
+});
+
+$("#btn-sluit-resultaat").on("click", function () {
+  modalResultaat.classList.add("hidden");
+  console.log("het werkt");
+});
+
+modalResultaat.addEventListener("click", (e) => {
+  if (e.target === modalResultaat) {
+    modalResultaat.classList.add("hidden");
+  }
+});
+
+const modalLoonstrook = document.getElementById("modal-loonstrook");
+
+$("#btn-loonstrook").on("click", function () {
+  resultaatBerekenen();
+  loonstrookVullen();
+  modalLoonstrook.classList.remove("hidden");
+  modalLoonstrook.classList.add("flex");
+});
+
+$("#closeModalLoonstrook").on("click", function () {
+  modalLoonstrook.classList.add("hidden");
+});
+
+modalLoonstrook.addEventListener("click", (e) => {
+  if (e.target === modalLoonstrook) {
+    modalLoonstrook.classList.add("hidden");
+  }
+});
+
+$("#seniorenverlof-actief").on("change", function () {
+  $("#seniorenverlof-sectie").toggleClass("hidden grid");
+  if (!$("#seniorenverlof-actief").prop("checked")) {
+    $("#select-seniorenverlof").prop("selectedIndex", 0);
+  }
+  dubbelCheckVerlof();
+});
+
+$("#ouderverlof-actief").on("change", function () {
+  $("#ouderverlof-sectie").toggleClass("hidden grid");
+  if (!$("#ouderverlof-actief").prop("checked")) {
+    $("#select-ouderverlof").prop("selectedIndex", 0);
+    disableOnnodigeElementen();
+  }
+  dubbelCheckVerlof();
+});
+
+function toggleVerlofSecties() {
+  if ($("#seniorenverlof-actief").prop("checked")) {
+    $("#seniorenverlof-sectie").removeClass("hidden").addClass("grid");
+  }
+  if ($("#ouderverlof-actief").prop("checked")) {
+    $("#ouderverlof-sectie").removeClass("hidden").addClass("grid");
+  }
+}
+
+toggleVerlofSecties();
+
+//* LOONSTROOK FUNCTIES
+const maandEnJaar = () => {
+  const vandaag = new Date();
+  const maand = vandaag.toLocaleString("default", { month: "long" });
+  const jaar = vandaag.getFullYear();
+  return `${capitalize(maand)} ${jaar}`;
+};
+
+$("#maand-en-jaar").text(maandEnJaar());
+
+$("#loonstrook-naam").text(naam() !== "" ? naam() : "Naam");

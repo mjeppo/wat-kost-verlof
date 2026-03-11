@@ -4,43 +4,53 @@
 ██ ▀▀ ██   ██ ██▄▄  ██▄█▀ ██ ▄█▄ ██ ██▀██ ██▄█▄ ██▄▄  
 ██    ██ ▄▄█▀ ██▄▄▄ ██     ▀██▀██▀  ██▀██ ██ ██ ██▄▄▄ 
 -->
-<html lang="en">
+<html lang="nl">
 
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <link rel="stylesheet" href="/src/style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="icon" type="image/svg+xml" href="/vite.svg">
+    <link rel="stylesheet" href="/src/style.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
       rel="stylesheet"
       integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
       crossorigin="anonymous">
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" />
+      href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css">
+    <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+      integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+      crossorigin="anonymous" referrerpolicy="no-referrer">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/js/all.min.js"
+      integrity="sha512-6BTOlkauINO65nLhXhthZMtepgJSghyimIalb+crKRPhvhmsCdnIuGcVbR5/aQY2A+260iC1OPy1oCdB6pSSwQ=="
+      crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
-      rel="stylesheet" />
+      rel="stylesheet">
     <title>Wat kost verlof</title>
   </head>
   <body>
     <div id="app">
       <div id="main" class="p-2">
-        <div class="mb-4 bg-slate-200 p-4 rounded m-2">
+        <div class="mb-4 bg-slate-200 p-4 rounded m-2 max-w-230">
           <h1>Wat kost verlof?</h1>
-          <h5 class="py-2">Bereken wat het kost om verlof op te nemen <span
+          <div class="py-2 text-[1.5rem] font-medium block">Bereken wat het kost om verlof op te
+            nemen <span
               class="text-sm">(seniorenverlof/ouderverlof/bijzonder
-              verlof)</span> </h5>
+              verlof)</span> </div>
           <p class="max-w-3/4">Voor een accurate berekening heb je jouw laatste loonstrook nodig.
             Heb je deze niet,
             dan kun je een schatting maken op basis van je huidige gegevens. Je kunt ook je
             loonstrook uploaden en de benodigde gegevens automatisch laten ophalen.</p>
 
           <!--* SECTIE UPLOADEN LOONSTROOK -->
-          <div class="bg-slate-300 p-2 rounded max-w-3/4! grid grid-cols-[250px_1fr] gap-2">
+          <div class="bg-slate-300 p-2 rounded grid grid-cols-[250px_1fr] gap-2">
             <div class="col-span-2 ">
               <div class="flex text-sm"
                 title="Om de tekst in de loonstrook te kunnen herkennen is een specifiek type pdf nodig.">Download
@@ -48,533 +58,715 @@
                 loonstrook de zojuiste gedownloade loonstrook. </div>
 
               <!--& PRIVACY-SECTIE -->
-              <div id="privacy-sectie">
-                <div id="btn-privacy"
-                  class="text-sm italic py-2"><a href="#">privacyverklaring</a>
+              <div id="btn-privacy"
+                class="text-sm italic py-2"><a href="#">privacyverklaring</a>
+              </div>
+
+              <p class="font-bold text-sm" title="Hoezo?">N.B. Gebruik een loonstrook
+                uit jouw dossier, geen gescand exemplaar. <button id="info-type-strook"><i
+                    class="fa-solid fa-circle-info cursor-pointer hover:text-blue-600"></i></button></p>
+            </div>
+
+            <input type="file" id="pdfUpload" accept="application/pdf"
+              class="btn btn-primary"
+              hidden>
+            <button type="button" id="chooseFileBtn" class="btn btn-primary ">Kies
+              loonstrook</button>
+            <div id="fileNameDisplay" class="ml-3 file-name text-sm mr-4 leading-10">Geen
+              bestand
+              gekozen</div>
+
+            <div id="keuze-analyse" class="col-span-2 text-sm">
+              <input type="checkbox" class="form-check-input mr-2 text-lg"
+                id="keuze-eerst-analyse"
+                name="keuze-eerst-analyse" checked>
+              <label for="keuze-eerst-analyse" class="ml-2">Laat eerst resultaat van
+                loonstrook-analyse zien</label>
+            </div>
+
+            <button id="analyzeBtn" class="btn btn-outline-info hidden!"
+              disabled>Analyseer
+              loonstrook</button>
+
+            <!--& DEBUG-VENSTER -->
+            <div class="hidden1 col-span-2 text-xs">
+              <span>Debug output:</span>
+              <textarea name="debugOutput" id="debugOutput" cols="50" rows="15"
+                class="w-full h-20 shadow-sm resize-none bg-slate-100 cursor-pointer"
+                readonly>
+                    </textarea>
+            </div>
+            <span class="hidden1"></span>
+
+            <!--& VOORBEELDWEERGAVE GEÏMORTEERDE GEGEVENS-->
+            <div id="previewCard"
+              class="hidden mt-6 p-4 border rounded-lg bg-gray-50 col-span-2 w-125">
+              <div class="text-sm mb-4 text-[1.5rem] font-medium block">Geïmporteerde gegevens</div>
+              <!-- <p>Kijk nog even goed of alle gegevens correct zijn.</p> -->
+
+              <div class="grid grid-cols-[180px_1fr] text-sm">
+                <div>Naam: </div><span id="previewNaam"></span>
+                <div>Medewerkernummer: </div><span id="previewNummer"></span>
+                <div>Schaal: </div><span id="previewSchaal"></span>
+                <div>WTF: </div><span id="previewWtf"></span>
+                <div>Basis salaris: </div><span id="previewBasis"></span>
+                <div>ABP Jaarinkomen: </div><span id="previewAbp"></span>
+                <div>Loonheffingskorting: </div><span id="previewLhk"></span>
+                <div>Reiskosten wwk: </div><span id="previewReiskosten"></span>
+                <div>Thuiswerkvergoeding: </div><span
+                  id="previewThuiswerkvergoeding"></span>
+                <div>Aanvullende ziektekosten: </div><span
+                  id="previewAanvZiektekosten"></span>
+                <div>EHBO vergoeding: </div><span id="previewEhbo"></span>
+                <div>BHV vergoeding: </div><span id="previewBhv"></span>
+                <div>Uit diensttredingdatum: </div><span
+                  id="previewUitDienstDatum"></span>
+                <div>AOV: </div><span id="previewAov"></span>
+                <div>Bruto-inhoudingen: </div><span id="previewBrutoInhoudingen"></span>
+              </div>
+              <!--! Knop om gegevens te verwerken-->
+              <div class="mt-4 hidden1">
+                <button
+                  id="applyDataBtn"
+                  class="btn btn-outline-success"
+                  disabled>
+                  Gegevens gebruiken
+                </button>
+              </div>
+              <span></span>
+            </div>
+            <span id="opvulling"></span>
+            <div class="cols-span-2">
+              <button class="btn btn-info max-w-80"
+                id="handmatigGegevensInvoerenBtn">Handmatig
+                gegevens invoeren</button>
+            </div>
+            <span></span>
+
+            <div class="mt-2 cols-span-2 hidden" id="extra-knop-voor-verwerking">
+              <button
+                id="applyDataBtn2"
+                class="btn btn-outline-success"
+                disabled>
+                Gegevens gebruiken
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="invoer-sectie" class="hidden1">
+
+          <!--* BASIS GEGEVENS -->
+          <div id="invoer">
+            <section id="basis-gegevens"
+              class="grid grid-cols-[200px_150px_1fr] bg-slate-100 p-3 rounded m-2 max-w-230">
+              <h2 class="hidden">Basisgegevens</h2>
+              <div class="flex col-span-3">
+                <div class="text-[1.5rem] font-medium block">Basisgegevens</div>
+                <div class="opslag actief ml-4" title="Invoer opslaan"></div>
+              </div>
+              <label for="peildatum" class="leading-11 verborgen-peil">Peildatum :</label>
+              <input
+                type="date"
+                id="peildatum"
+                name="Peildatum"
+                class="form-control h-10 shadow-sm placeholder:text-sm! verborgen-peil updater no-check"
+                aria-label="peildatum"
+                value>
+              <span class="verborgen-peil"></span>
+              <label for="schaal-keuze" class="leading-11">
+                Schaal :
+              </label>
+              <select
+                name="Schaal"
+                id="schaal-keuze"
+                class="schaal-keuze shadow-sm! p-2 border rounded! h-10! form-select updater"></select>
+              <div class="ml-8  items-center text-sm hidden">Normbedrag <span
+                  class="text-sm italic mx-1"> (fulltime)</span> :<span
+                  id="schaal-bedrag"
+                  class="ml-2"></span></div><span></span>
+              <label for="inputBasisSalaris" class="leading-11">Basis-salaris :</label>
+              <input type="number" id="inputBasisSalaris"
+                class="form-control h-10 shadow-sm updater">
+              <span class="text-sm ml-8 italic leading-10">(Bij een fulltime
+                betrekking)</span>
+              <label for="wtf-input" class="leading-11 h-10 -mt-1">
+                Werktijdfactor :
+              </label>
+              <div class="grid grid-cols-[128px_1fr] h-10! -mt-1">
+                <div class="row-span-2 pt-1">
+                  <input
+                    type="text"
+                    class="form-control shadow-sm h-full w-full updater"
+                    aria-label="Werktijdfactor"
+                    id="wtf-input"
+                    name="Werktijdfactor">
                 </div>
-                <div id="privacy-statement" class="text-sm bg-slate-100 p-4 m-2 hidden rounded">
-                  <div class="flex justify-between ">
-                    <h5>Privacyverklaring – Verwerking loonstrook voor berekening</h5>
-                    <button id="sluit-privacy" class="ml-auto btn-close"></button>
-                  </div><p>DCTerra hecht grote waarde aan de bescherming van persoonsgegevens.
-                    Binnen
-                    onze applicatie kan een gebruiker vrijwillig een loonstrook uploaden met als
-                    doel
-                    om
-                    hieruit automatisch relevante gegevens te extraheren ten behoeve van een
-                    berekening. Wij gaan hierbij als volgt om met uw gegevens:
-                  </p>
-                  <p>
-                    <ol>
-                      <li class="list-disc"><strong>Doel van de verwerking</strong><li>
-                          <p>
-                            De loonstrook wordt uitsluitend gebruikt om automatisch bepaalde
-                            inkomensgegevens uit te lezen die nodig zijn voor het uitvoeren van
-                            een
-                            berekening binnen onze applicatie.
-                          </p>
-                          <li class="list-disc font-bold">Geen opslag van de loonstrook</li>
-                          <p>
-                            De geüploade loonstrook wordt:
-                            <ul class="list-disc -ml-3 -mt-4!">
-                              <li>Niet opgeslagen in onze systemen</li>
-                              <li>Niet bewaard op onze servers</li>
-                              <li>Niet toegevoegd aan een dossier of gebruikersprofiel</li>
-                            </ul>
-                            De verwerking vindt uitsluitend tijdelijk plaats voor het uitvoeren
-                            van de
-                            berekening.
-                          </p>
-                          <li class="list-disc font-bold">Geen opslag van uitgelezen gegevens</li>
-                          <p>
-                            De gegevens die uit de loonstrook worden geëxtraheerd:
-                            <ul class="list-disc -ml-3 -mt-4!">
-                              <li>Worden niet permanent opgeslagen</li>
-                              <li>Worden niet gekoppeld aan een gebruiker</li>
-                              <li>Worden niet gedeeld met derden</li>
-                              <li>Worden niet gebruikt voor andere doeleinden dan de directe
-                                berekening</li>
-                            </ul>
-                            Na voltooiing van de berekening worden zowel het document als de
-                            uitgelezen gegevens uit het werkgeheugen verwijderd.
-                          </p>
-                          <li class="list-disc font-bold">Rechtsgrond en minimale
-                            gegevensverwerking</li>
-                          De verwerking vindt plaats op basis van toestemming van de gebruiker
-                          (artikel 6 lid 1 sub a AVG).
-                          Wij verwerken uitsluitend de gegevens die strikt noodzakelijk zijn voor
-                          het
-                          uitvoeren van de gevraagde berekening (dataminimalisatie).
-                          <p>
-                            <li class="list-disc font-bold">Beveiliging</li>
-                            <p>Indien de verwerking via een server plaatsvindt, gebeurt dit via
-                              een
-                              beveiligde (SSL/TLS) verbinding. Er worden geen documenten of
-                              gegevens
-                              langer bewaard dan technisch noodzakelijk is voor het uitvoeren van
-                              de
-                              berekening.</p>
-                          </p>
-                        </p>
-                      </div>
-                    </div>
-                    <!--& EINDE PRIVACY-SECTIE -->
+                <div class="flex flex-col pl-2 pt-2">
+                  <div class="flex-1" id="up-btn"><img src="src/img/up.png"
+                      class="hover:-translate-y-[0.06rem]" alt="0,1 omhoog"> </div>
+                  <div class="flex-1" id="down-btn"><img src="src/img/down.png"
+                      class="hover:translate-y-[0.06rem] text-red-500" alt="0,1 omlaag"></div>
+                </div>
+              </div>
+              <span></span>
+              <label class="mt-2">Salaris<span
+                  class="text-sm italic mx-1">(Uit uren gewerkt)</span></label>
+              <div class="leading-11 flex items-center  ">
+                <span id="salaris-uit-uren-gewerkt" class="ml-1"></span>
+              </div>
+            </section>
+            <!--* AANVULLENDE GEGEVENS-->
+            <section id="aanvullende-gegevens"
+              class="grid grid-cols-[250px_150px_1fr] bg-slate-100 p-3 rounded m-2 max-w-230">
+              <h2 class="hidden">Aanvullende gegevens</h2>
+              <div class="flex col-span-3">
+                <div class="text-[1.5rem] font-medium block">Aanvullende gegevens</div>
+                <div class="opslag actief ml-4" title="Invoer opslaan"></div>
+              </div>
+              <label for="input-abp-jaarinkomen" class="leading-11">ABP Jaarinkomen :
+              </label>
+              <input
+                type="number"
+                id="input-abp-jaarinkomen"
+                name="ABP Jaarinkomen"
+                class="form-control h-10 shadow-sm placeholder:text-sm! updater"
+                placeholder="ABP Jaarinkomen"
+                aria-label="abp-jaarinkomen">
+              <span class="ml-2 "><button class="kleine-knop mt-2 updater"
+                  id="abp-jaarinkomen-berekenen"
+                  title="Neem het jaarinkomen over van jouw loonstrook. Heb je geen loonstrook klik dan op berekenen om het jaarloon te berekenen op basis van de hierboven ingevulde gegevens. Let op, dit is minder accuraat!">Berekenen</button></span>
+              <label for="loonheffingskorting" class="my-2">Loonheffingskorting toepassen
+                :</label>
+              <input class="form-check-input my-3!" type="checkbox"
+                id="loonheffingskorting"
+                name="Loonheffingskorting toepassen">
+              <span></span>
+              <label for="aov-select" class="leading-11 mb-2">AOV Loyalis (Ipap) :</label>
+              <select id="aov-select" class="form-select h-10 shadow-sm w-52! updater"
+                name="AOV selecteren">
+              </select>
+              <span></span>
+            </section>
+            <!--* BRUTO ELEMENTEN -->
+            <section id="bruto-elementen"
+              class="grid grid-cols-[270px_150px_1fr] bg-slate-100 p-3 rounded m-2 max-w-230">
+              <h2 class="hidden">Bruto elementen</h2>
+              <!--& Rij 1 -->
+              <div class="col-span-3 mb-2 flex">
+                <div class="text-[1.5rem] font-medium block">Bruto vergoedingen en inhoudingen</div>
+                <div class="opslag actief ml-4" title="Invoer opslaan"></div>
+              </div>
+              <!--& Rij 2 -->
+              <label for="aanvullende-ziektekosten" class>Aanvullende ziektekosten
+                :</label>
+              <span class="col-span-2"><input class="form-check-input mb-3 updater"
+                  type="checkbox"
+                  id="aanvullende-ziektekosten"></span>
 
-                    <p class="font-bold text-sm">N.B. Gebruik een loonstrook
-                      uit jouw dossier, geen gescand
-                      exemplaar. </p>
-                  </div>
+              <label for="ehbo-vergoeding" class>EHBO Vergoeding :</label>
+              <input class="form-check-input mb-3 updater" type="checkbox"
+                id="ehbo-vergoeding"
+                name="EHBO-vergoeding"><span></span>
+              <label for="bhv-vergoeding" class>BHV Vergoeding :</label>
+              <input class="form-check-input mb-3 updater" type="checkbox"
+                id="bhv-vergoeding"
+                name="BHV-vergoeding"><span></span>
+              <!--& Rij 3 -->
+              <label for="periodieke-vakantietoeslag" class>Periodieke Vakantietoeslag
+                :</label>
+              <span class="col-span-2"><input class="form-check-input mb-3 updater"
+                  type="checkbox"
+                  id="periodieke-vakantietoeslag"
+                  name="Periodieke vakantietoeslag"></span>
+              <label for="periodieke-eindejaarsuitkering" class>Periodieke
+                Eindejaarsuitkering
+                :</label>
+              <input class="form-check-input mb-3 updater" type="checkbox"
+                id="periodieke-eindejaarsuitkering"
+                name="Periodieke eindejaarsuitkering">
+              <span></span>
+              <label for="input-bruto-vergoeding" class="leading-9">Overige bruto
+                vergoeding(en)</label>
+              <input type="text"
+                class="form-control h-10 w-32! shadow-sm placeholder:text-sm! col-span-1 updater"
+                id="input-bruto-vergoeding" name="Bruto vergoeding">
+              <span class="text-sm leading-11 col-span-1">(Toelage (tijdelijke
+                tewerkstelling
+                /
+                bestuurstoelage), etc.)</span>
 
-                  <input type="file" id="pdfUpload" accept="application/pdf"
-                    class="btn btn-primary"
-                    hidden />
-                  <button type="button" id="chooseFileBtn" class="btn btn-primary ">Kies
-                    loonstrook</button>
-                  <div id="fileNameDisplay" class="ml-3 file-name text-sm mr-4 leading-10">Geen
-                    bestand
-                    gekozen</div>
-
-                  <div id="keuze-analyse" class="col-span-2 text-sm">
-                    <input type="checkbox" class="form-check-input mr-2 text-lg"
-                      id="keuze-eerst-analyse"
-                      name="keuze-eerst-analyse" checked>
-                    <label for="keuze-eerst-analyse" class="ml-2">Laat eerst resultaat van
-                      loonstrook-analyse zien</label>
-                  </div>
-
-                  <button id="analyzeBtn" class="btn btn-outline-info hidden!"
-                    disabled>Analyseer
-                    loonstrook</button>
-                  <span class="hidden1"></span>
-                  <div class="hidden1">
-                    <span>Debug output:</span>
-                    <pre id="debugOutput" class></pre>
-                  </div>
-                  <span class="hidden1"></span>
-
-                  <!--& VOORBEELDWEERGAVE GEÏMORTEERDE GEGEVENS-->
-                  <div id="previewCard"
-                    class="hidden mt-6 p-4 border rounded-lg bg-gray-50 col-span-2 w-125">
-                    <h5 class="text-sm font-semibold mb-4">Geïmporteerde gegevens</h5>
-                    <!-- <p>Kijk nog even goed of alle gegevens correct zijn.</p> -->
-
-                    <div class="grid grid-cols-[180px_1fr] text-sm">
-                      <div>Schaal: </div><span id="previewSchaal"></span>
-                      <div>WTF: </div><span id="previewWtf"></span>
-                      <div>Basis salaris: </div><span id="previewBasis"></span>
-                      <div>ABP Jaarinkomen: </div><span id="previewAbp"></span>
-                      <div>Loonheffingskorting: </div><span id="previewLhk"></span>
-                      <div>Reiskosten wwk: </div><span id="previewReiskosten"></span>
-                      <div>Thuiswerkvergoeding: </div><span
-                        id="previewThuiswerkvergoeding"></span>
-                      <div>Aanvullende ziektekosten: </div><span
-                        id="previewAanvZiektekosten"></span>
-                      <div>EHBO vergoeding: </div><span id="previewEhbo"></span>
-                      <div>BHV vergoeding: </div><span id="previewBhv"></span>
-                      <div>Uit diensttredingdatum: </div><span
-                        id="previewUitDienstDatum"></span>
-                      <div>AOV: </div><span id="previewAov"></span>
-                      <div>Bruto-inhoudingen: </div><span id="previewBrutoInhoudingen"></span>
-                    </div>
-                    <!--! Knop om gegevens te verwerken-->
-                    <div class="mt-4 hidden">
-                      <button
-                        id="applyDataBtn"
-                        class="btn btn-outline-success"
-                        disabled>
-                        Gegevens gebruiken
-                      </button>
-                    </div>
-                  </div>
-
-                  <div class="mt-2 " id="extra-knop-voor-verwerking">
-                    <button
-                      id="applyDataBtn2"
-                      class="btn btn-outline-success"
-                      disabled>
-                      Gegevens gebruiken
-                    </button>
+              <label for="input-bruto-inhouding" class="leading-9">Bruto inhouding(en)</label>
+              <input type="text"
+                class="form-control h-10 w-32! shadow-sm placeholder:text-sm! col-span-1 updater"
+                id="input-bruto-inhouding" name="Bruto inhouding">
+              <span class="text-sm leading-11 col-span-1">(Inhouding
+                fitness/fiets/smartwatch/etc.)</span>
+            </section>
+            <!--* NETTO ELEMENTEN -->
+            <section id="netto-elementen"
+              class="grid grid-cols-[270px_150px_1fr] bg-slate-100 p-3 rounded m-2 max-w-230">
+              <h2 class="hidden">Netto elementen</h2>
+              <div class="mb-2 col-span-3 flex">
+                <div class="text-[1.5rem] font-medium block">Netto vergoedingen en inhoudingen</div>
+                <div class="opslag actief ml-4" title="Invoer opslaan"></div>
+              </div>
+              <!--? REISKOSTEN WOON-WERK -->
+              <label for="input-reiskosten-wwk" class="leading-11">Reiskosten woon-werk
+                <span
+                  class="text-[14px] italic">(Totaalbedrag)</span></label>
+              <input type="text"
+                class="form-control h-10 shadow-sm placeholder:text-sm! w-32! updater"
+                id="input-reiskosten-wwk" name="Reiskosten woon-werk">
+              <span class="ml-2"><button class="kleine-knop mt-2"
+                  id="specificeer-wwk">Specificeer</button></span>
+              <div class="span col-span-3 verborgen mb-3" id="reiskosten-specificatie">
+                <div class="grid grid-cols-[100px_100px_100px_100px_100px] pl-2">
+                  <div class="specificatie-dag cursor-pointer">Ma</div>
+                  <div class="specificatie-dag cursor-pointer">Di</div>
+                  <div class="specificatie-dag cursor-pointer">Wo</div>
+                  <div class="specificatie-dag cursor-pointer">Do</div>
+                  <div class="specificatie-dag cursor-pointer">Vr</div>
+                </div>
+                <div class="grid grid-cols-[100px_100px_100px_100px_100px_100px] ">
+                  <input type="number" step="any"
+                    class="form-control h-10 shadow-sm placeholder:text-sm! w-20! wwk-spec updater"
+                    id="wwk-ma" name="Woon-werk maandag">
+                  <input type="number" step="any"
+                    class="form-control h-10 shadow-sm placeholder:text-sm! w-20! wwk-spec updater"
+                    id="wwk-di" name="Woon-werk dinsdag">
+                  <input type="number" step="any"
+                    class="form-control h-10 shadow-sm placeholder:text-sm! w-20! wwk-spec updater"
+                    id="wwk-wo" name="Woon-werk woensdag">
+                  <input type="number" step="any"
+                    class="form-control h-10 shadow-sm placeholder:text-sm! w-20! wwk-spec updater"
+                    id="wwk-do" name="Woon-werk donderdag">
+                  <input type="number" step="any"
+                    class="form-control h-10 shadow-sm placeholder:text-sm! w-20! wwk-spec updater"
+                    id="wwk-vr" name="Woon-werk vrijdag">
+                  <button class="kleine-knop bg-red-600!"
+                    id="specificatie-leegmaken">leegmaken</button>
+                </div>
+              </div>
+              <!--? THUISWERKVERGOEDING -->
+              <label for="input-thuiswerkvergoeding"
+                class="leading-11">Thuiswerkvergoeding
+                <span
+                  class="text-[14px] italic">(Totaalbedrag)</span></label>
+              <input type="text"
+                class="form-control h-10 shadow-sm placeholder:text-sm! w-32! updater"
+                id="input-thuiswerkvergoeding" name="Thuiswerkvergoeding">
+              <span class="ml-2"><button class="kleine-knop mt-2"
+                  id="specificeer-thuiswerkvergoeding">Specificeer</button></span>
+              <div class="span col-span-3 verborgen"
+                id="thuiswerkvergoeding-specificatie">
+                <div class="grid grid-cols-[100px_100px_100px_100px_100px] pl-2">
+                  <div class="specificatie-dag-thuis cursor-pointer">Ma</div>
+                  <div class="specificatie-dag-thuis cursor-pointer">Di</div>
+                  <div class="specificatie-dag-thuis cursor-pointer">Wo</div>
+                  <div class="specificatie-dag-thuis cursor-pointer">Do</div>
+                  <div class="specificatie-dag-thuis cursor-pointer">Vr</div>
+                  <div class="grid grid-cols-[100px_100px_100px_100px_100px_100px] -ml-2">
+                    <input type="number" step="any"
+                      class="form-control h-10 shadow-sm placeholder:text-sm! w-20! thuis-spec updater"
+                      id="thuiswerk-ma" name="Thuiswerk maandag">
+                    <input type="number" step="any"
+                      class="form-control h-10 shadow-sm placeholder:text-sm! w-20! thuis-spec updater"
+                      id="thuiswerk-di" name="Thuiswerk dinsdag">
+                    <input type="number" step="any"
+                      class="form-control h-10 shadow-sm placeholder:text-sm! w-20! thuis-spec updater"
+                      id="thuiswerk-wo" name="Thuiswerk woensdag">
+                    <input type="number" step="any"
+                      class="form-control h-10 shadow-sm placeholder:text-sm! w-20! thuis-spec updater"
+                      id="thuiswerk-do" name="Thuiswerk donderdag">
+                    <input type="number" step="any"
+                      class="form-control h-10 shadow-sm placeholder:text-sm! w-20! thuis-spec updater"
+                      id="thuiswerk-vr" name="Thuiswerk vrijdag">
+                    <button class="kleine-knop bg-red-600!"
+                      id="specificatie-thuiswerk-leegmaken">leegmaken</button>
                   </div>
                 </div>
               </div>
-
-              <div id="invoer-sectie" class="hidden1">
-
-                <!--* BASIS GEGEVENS -->
-                <div id="invoer">
-                  <section id="basis-gegevens"
-                    class="grid grid-cols-[200px_150px_500px] bg-slate-100 p-3 rounded m-2">
-                    <div class="flex col-span-3">
-                      <h5>Basisgegevens</h5>
-                      <div class="opslag actief ml-4" title="Invoer opslaan"></div>
-                    </div>
-                    <label for="peildatum" class="leading-11 verborgen-peil">Peildatum :</label>
-                    <input
-                      type="date"
-                      id="peildatum"
-                      name="Peildatum"
-                      class="form-control h-10 shadow-sm placeholder:text-sm! verborgen-peil updater no-check"
-                      placeholder="Peildatum"
-                      aria-label="peildatum"
-                      value />
-                    <span class="verborgen-peil"></span>
-                    <label for="schaal-keuze" class="leading-11">
-                      Schaal :
-                    </label>
-                    <select
-                      name="Schaal"
-                      id="schaal-keuze"
-                      class="schaal-keuze shadow-sm! p-2 border rounded! h-10! form-select updater"></select>
-                    <div class="ml-8  items-center text-sm hidden">Normbedrag <span
-                        class="text-sm italic mx-1"> (fulltime)</span> :<span
-                        id="schaal-bedrag"
-                        class="ml-2"></span></div><span></span>
-                    <label for="inputBasisSalaris" class="leading-11">Basis-salaris :</label>
-                    <input type="number" id="inputBasisSalaris"
-                      class="form-control h-10 shadow-sm updater">
-                    <span class="text-sm ml-8 italic leading-10">(Bij een fulltime
-                      betrekking)</span>
-                    <label for="wtf-input" class="leading-11 h-10 -mt-1">
-                      Werktijdfactor :
-                    </label>
-                    <div class="grid grid-cols-[128px_1fr] h-10! -mt-1">
-                      <div class="row-span-2 pt-1">
-                        <input
-                          type="decimal"
-                          class="form-control shadow-sm h-full w-full updater"
-                          placeholder="Wtf"
-                          aria-label="Werktijdfactor"
-                          id="wtf-input"
-                          name="Werktijdfactor" />
-                      </div>
-                      <div class="flex flex-col pl-2 pt-2">
-                        <div class="flex-1" id="up-btn"><img src="src/img/up.png"
-                            class="hover:-translate-y-[0.06rem]"> </div>
-                        <div class="flex-1" id="down-btn"><img src="src/img/down.png"
-                            class="hover:translate-y-[0.06rem] text-red-500"></div>
-                      </div>
-                    </div>
-                    <span></span>
-                    <label class="mt-2">Salaris<span
-                        class="text-sm italic mx-1">(Uit uren gewerkt)</span></label>
-                    <div class="leading-11 flex items-center  ">
-                      <span id="salaris-uit-uren-gewerkt" class="ml-1"></span>
-                    </div>
-                  </section>
-                  <!--* AANVULLENDE GEGEVENS-->
-                  <section id="aanvullende-gegevens"
-                    class="grid grid-cols-[250px_150px_500px] bg-slate-100 p-3 rounded m-2">
-                    <div class="flex col-span-3">
-                      <h5 class>Aanvullende gegevens</h5>
-                      <div class="opslag actief ml-4" title="Invoer opslaan"></div>
-                    </div>
-                    <label for="input-abp-jaarinkomen" class="leading-11">ABP Jaarinkomen :
-                    </label>
-                    <input
-                      type="number"
-                      id="input-abp-jaarinkomen"
-                      name="ABP Jaarinkomen"
-                      class="form-control h-10 shadow-sm placeholder:text-sm! updater"
-                      placeholder="ABP Jaarinkomen"
-                      aria-label="abp-jaarinkomen" />
-                    <span class="ml-2 "><button class="kleine-knop mt-2 updater"
-                        id="abp-jaarinkomen-berekenen"
-                        title="Neem het jaarinkomen over van jouw loonstrook. Heb je geen loonstrook klik dan op berekenen om het jaarloon te berekenen op basis van de hierboven ingevulde gegevens. Let op, dit is minder accuraat!">Berekenen</button></span>
-                    <label for="loonheffingskorting" class="my-2">Loonheffingskorting toepassen
-                      :</label>
-                    <input class="form-check-input my-3!" type="checkbox"
-                      id="loonheffingskorting"
-                      name="Loonheffingskorting toepassen" />
-                    <span></span>
-                    <label for="aov-select" class="leading-11 mb-2">AOV Loyalis (Ipap) :</label>
-                    <select id="aov-select" class="form-select h-10 shadow-sm w-52! updater"
-                      name="AOV selecteren">
-                    </select>
-                    <span></span>
-                  </section>
-                  <!--* BRUTO ELEMENTEN -->
-                  <section id="bruto-elementen"
-                    class="grid grid-cols-[270px_50px_100px_250px_50px_200px_1fr] bg-slate-100 p-3 rounded m-2">
-                    <!--& Rij 1 -->
-                    <div class="col-span-7 mb-2 flex">
-                      <h5>Bruto vergoedingen en inhoudingen</h5>
-                      <div class="opslag actief ml-4" title="Invoer opslaan"></div>
-                    </div>
-                    <!--& Rij 2 -->
-                    <label for="aanvullende-ziektekosten" class>Aanvullende ziektekosten
-                      :</label>
-                    <span class="col-span-2"><input class="form-check-input mb-3 updater"
-                        type="checkbox"
-                        id="aanvullende-ziektekosten" /></span>
-                    <label for="ehbo-vergoeding" class>EHBO Vergoeding :</label>
-                    <input class="form-check-input mb-3 updater" type="checkbox"
-                      id="ehbo-vergoeding"
-                      name="EHBO-vergoeding" />
-                    <label for="bhv-vergoeding" class>BHV Vergoeding :</label>
-                    <input class="form-check-input mb-3 updater" type="checkbox"
-                      id="bhv-vergoeding"
-                      name="BHV-vergoeding" />
-                    <!--& Rij 3 -->
-                    <label for="periodieke-vakantietoeslag" class>Periodieke Vakantietoeslag
-                      :</label>
-                    <span class="col-span-2"><input class="form-check-input mb-3 updater"
-                        type="checkbox"
-                        id="periodieke-vakantietoeslag"
-                        name="Periodieke vakantietoeslag" /></span>
-                    <label for="periodieke-eindejaarsuitkering" class>Periodieke
-                      Eindejaarsuitkering
-                      :</label>
-                    <input class="form-check-input mb-3 updater" type="checkbox"
-                      id="periodieke-eindejaarsuitkering"
-                      name="Periodieke eindejaarsuitkering" />
-                    <span></span>
-                    <span></span>
-                    <label for="input-bruto-vergoeding" class>Bruto vergoeding</label>
-                    <input type="text"
-                      class="form-control h-10 w-32! shadow-sm placeholder:text-sm! col-span-2 updater"
-                      id="input-bruto-vergoeding" name="Bruto vergoeding">
-                    <span class="text-sm leading-11 col-span-3">(Toelage (tijdelijke
-                      tewerkstelling
-                      /
-                      bestuurstoelage), etc.)</span>
-                    <span></span>
-                    <label for="input-bruto-inhouding">Bruto inhouding</label>
-                    <input type="text"
-                      class="form-control h-10 w-32! shadow-sm placeholder:text-sm! col-span-2 updater"
-                      id="input-bruto-inhouding" name="Bruto inhouding">
-                    <span class="text-sm leading-11 col-span-3">(Inhouding
-                      fitness/fiets/smartwatch/etc.)</span>
-                  </section>
-                  <!--* NETTO ELEMENTEN -->
-                  <section id="netto-elementen"
-                    class="grid grid-cols-[270px_150px_1fr] bg-slate-100 p-3 rounded m-2">
-                    <div class="mb-2 col-span-3 flex">
-                      <h5>Netto vergoedingen en inhoudingen</h5>
-                      <div class="opslag actief ml-4" title="Invoer opslaan"></div>
-                    </div>
-                    <!--? REISKOSTEN WOON-WERK -->
-                    <label for="input-reiskosten-wwk" class="leading-11">Reiskosten woon-werk
-                      <span
-                        class="text-[14px] italic">(Totaalbedrag)</span></label>
-                    <input type="text"
-                      class="form-control h-10 shadow-sm placeholder:text-sm! w-32! updater"
-                      id="input-reiskosten-wwk" name="Reiskosten woon-werk">
-                    <span class="ml-2"><button class="kleine-knop mt-2"
-                        id="specificeer-wwk">Specificeer</button></span>
-                    <div class="span col-span-3 verborgen mb-3" id="reiskosten-specificatie">
-                      <div class="grid grid-cols-[100px_100px_100px_100px_100px] pl-2">
-                        <div class="specificatie-dag cursor-pointer">Ma</div>
-                        <div class="specificatie-dag cursor-pointer">Di</div>
-                        <div class="specificatie-dag cursor-pointer">Wo</div>
-                        <div class="specificatie-dag cursor-pointer">Do</div>
-                        <div class="specificatie-dag cursor-pointer">Vr</div>
-                      </div>
-                      <div class="grid grid-cols-[100px_100px_100px_100px_100px_100px] ">
-                        <input type="decimal"
-                          class="form-control h-10 shadow-sm placeholder:text-sm! w-20! wwk-spec updater"
-                          id="wwk-ma" name="Woon-werk maandag">
-                        <input type="decimal"
-                          class="form-control h-10 shadow-sm placeholder:text-sm! w-20! wwk-spec updater"
-                          id="wwk-di" name="Woon-werk dinsdag">
-                        <input type="decimal"
-                          class="form-control h-10 shadow-sm placeholder:text-sm! w-20! wwk-spec updater"
-                          id="wwk-wo" name="Woon-werk woensdag">
-                        <input type="decimal"
-                          class="form-control h-10 shadow-sm placeholder:text-sm! w-20! wwk-spec updater"
-                          id="wwk-do" name="Woon-werk donderdag">
-                        <input type="decimal"
-                          class="form-control h-10 shadow-sm placeholder:text-sm! w-20! wwk-spec updater"
-                          id="wwk-vr" name="Woon-werk vrijdag">
-                        <button class="kleine-knop bg-red-600!"
-                          id="specificatie-leegmaken">leegmaken</button>
-                      </div>
-                    </div>
-                    <!--? THUISWERKVERGOEDING -->
-                    <label for="input-thuiswerkvergoeding"
-                      class="leading-11">Thuiswerkvergoeding
-                      <span
-                        class="text-[14px] italic">(Totaalbedrag)</span></label>
-                    <input type="text"
-                      class="form-control h-10 shadow-sm placeholder:text-sm! w-32! updater"
-                      id="input-thuiswerkvergoeding" name="Thuiswerkvergoeding">
-                    <span class="ml-2"><button class="kleine-knop mt-2"
-                        id="specificeer-thuiswerkvergoeding">Specificeer</button></span>
-                    <div class="span col-span-3 verborgen"
-                      id="thuiswerkvergoeding-specificatie">
-                      <div class="grid grid-cols-[100px_100px_100px_100px_100px] pl-2">
-                        <div class="specificatie-dag-thuis cursor-pointer">Ma</div>
-                        <div class="specificatie-dag-thuis cursor-pointer">Di</div>
-                        <div class="specificatie-dag-thuis cursor-pointer">Wo</div>
-                        <div class="specificatie-dag-thuis cursor-pointer">Do</div>
-                        <div class="specificatie-dag-thuis cursor-pointer">Vr</div>
-                        <div class="grid grid-cols-[100px_100px_100px_100px_100px_100px] -ml-2">
-                          <input type="decimal"
-                            class="form-control h-10 shadow-sm placeholder:text-sm! w-20! thuis-spec updater"
-                            id="thuiswerk-ma" name="Thuiswerk maandag">
-                          <input type="decimal"
-                            class="form-control h-10 shadow-sm placeholder:text-sm! w-20! thuis-spec updater"
-                            id="thuiswerk-di" name="Thuiswerk dinsdag">
-                          <input type="decimal"
-                            class="form-control h-10 shadow-sm placeholder:text-sm! w-20! thuis-spec updater"
-                            id="thuiswerk-wo" name="Thuiswerk woensdag">
-                          <input type="decimal"
-                            class="form-control h-10 shadow-sm placeholder:text-sm! w-20! thuis-spec updater"
-                            id="thuiswerk-do" name="Thuiswerk donderdag">
-                          <input type="decimal"
-                            class="form-control h-10 shadow-sm placeholder:text-sm! w-20! thuis-spec updater"
-                            id="thuiswerk-vr" name="Thuiswerk vrijdag">
-                          <button class="kleine-knop bg-red-600!"
-                            id="specificatie-thuiswerk-leegmaken">leegmaken</button>
-                        </div>
-                      </div>
-                    </div>
-                    <!--? TELEFOONVERGOEDING-->
-                    <label for="telefoonvergoeding" class="mt-3">Telefoonvergoeding :</label>
-                    <input class="form-check-input mt-3 mb-3 updater" type="checkbox"
-                      id="telefoonvergoeding" name="Telefoonvergoeding" />
-                    <span></span>
-                    <label for="input-netto-inhoudingen" class="leading-11">Netto
-                      inhoudingen</label>
-                    <input type="text"
-                      class="form-control h-10 shadow-sm placeholder:text-sm! w-32! updater"
-                      id="input-netto-inhoudingen" name="Netto inhoudingen">
-                    <span class="text-sm leading-11">(Bijvoorbeeld inhouding PV / netto
-                      inhouding
-                      fitness
-                      /
-                      etc.)</span>
-                  </section>
-                  <!--* VERLOF -->
-                  <section id="verlof" class=" bg-slate-100 p-3 rounded m-2">
-                    <h5 class="mb-3">Verlof</h5>
-                    <!--? SENIORENVERLOF -->
-                    <section id="senioren-verlof" class="bg-slate-200 p-2 rounded">
-                      <div class="grid grid-cols-[150px_120px_1fr]">
-                        <h4 class="pt-1">Seniorenverlof</h4>
-                        <div class="opslag actief ml-4 mt-2" title="Invoer opslaan"></div>
-                        <span id="dubbel-verlof-waarschuwing"
-                          class="ml-1 text-red-500 leading-10 dubbel-check-span text-sm"></span>
-                      </div>
-                      <div class="grid grid-cols-[270px_150px_1fr]">
-                        <label for="select-seniorenverlof" class="leading-11 mb-2">Soort
-                          seniorenverlof</label>
-                        <select name="select-seniorenverlof" id="select-seniorenverlof"
-                          class="form-select h-11! updater  col-span-2 w-100! dubbel-check">
-                          <option value="Geen">Geen</option>
-                          <option value="basis">Basis seniorenverlof</option>
-                          <option value="beide">Basis en extra
-                            seniorenverlof</option>
-                          <option value="62_plus">62+ regeling</option>
-                        </select>
-                        <div>Berekende wtf <span class="text-xs italic">(standaard
-                            berekening)</span></div>
-                        <span id="seniorenverlof-berekende-wtf" class="ml-2"></span>
-                        <span class="ml4 text-sm ml-2" id="senVerlofBerekening"></span>
-                        <label for="input-aangepaste-wtf" class="leading-12 mt-3">Aangepaste
-                          wtf</label>
-                        <input type="text"
-                          class="form-control h-10 shadow-sm placeholder:text-sm! w-32!  no-check1 mt-2 updater"
-                          id="input-aangepaste-wtf" name="Aangepaste wtf">
-                        <span class="leading-12 text-sm pl-2">Indien leeg wordt de standaard
-                          berekende wtf
-                          <span id="standaard-wtf-seniorenverlof"></span> gebruikt</span>
-                      </div>
-                    </section>
-                    <!--* OUDERVERLOF -->
-                    <section id="ouder-verlof" class="mt-4 bg-slate-200 p-2 rounded">
-                      <div class="grid grid-cols-[150px_120px_1fr]">
-                        <h4 class="pt-1">Ouderverlof</h4>
-                        <div class="opslag actief ml-4 mt-2" title="Invoer opslaan"></div>
-                        <span id="dubbel-verlof-waarschuwing"
-                          class="ml-1 text-red-500 leading-10 dubbel-check-span text-sm"></span>
-                      </div>
-                      <div class="grid grid-cols-[270px_150px_1fr]">
-                        <label for="select-ouderverlof" class="leading-11 mb-2">Soort
-                          verlof</label>
-                        <select name="select-ouderverlof" id="select-ouderverlof"
-                          class="form-select h-11! col-span-2 w-100! updater dubbel-check">
-                          <option value="Geen">Geen</option>
-                          <option value="geboorteverlof"
-                            name="Aanvullende geboorteverlof">Aanvullende
-                            geboorteverlof (70%)</option>
-                          <option value="osvw">Wettelijk ouderschapsverlof (70%)</option>
-                          <option value="osvb">Betaald ouderschapsverlof CAO MBO (55%)</option>
-                          <option value="osvo">Onbetaald ouderschapsverlof CAO MBO (0%)</option>
-                        </select>
-                        <label for="input-wtf-ouderverlof" class="leading-11">Werktijdfactor
-                          opname
-                          verlof</label>
-                        <input type="text"
-                          class="form-control h-10 shadow-sm placeholder:text-sm! w-32! mt-1 no-check1 updater"
-                          id="input-wtf-ouderverlof" name="Wtf ouderverlof" disabled>
-                        <span class="ml4 text-sm leading-11">(Dit kan een gemiddelde
-                          werktijdfactor
-                          zijn)</span>
-                        <div class="mt-3">Kortingspercentage <span
-                            class="text-xs italic">(o.b.v.
-                            keuze
-                            verlof)</span></div>
-                        <span id="ouderverlof-kortingspercentage" class="mt-3 ml-2 "></span>
-                        <span></span>
-                        <label for="ouderverlof-aangepast-kortingspercentage"
-                          class="mt-3">Aangepast
-                          kortingspercentage</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          class="form-control h-10 shadow-sm placeholder:text-sm! w-32! mt-2 no-check1 updater"
-                          id="ouderverlof-aangepast-kortingspercentage"
-                          name="Aangepast kortingspercentage"
-                          disabled>
-                        <span class="text-sm leading-11 mt-1" id="ouder-info-aangepast">Alleen
-                          bij
-                          betaald
-                          ouderschapsverlof vanuit de
-                          CAO MBO</span>
-                      </div>
-                    </section>
-                    <!--* ONBETAALD VERLOF -->
-                    <section id="onbetaald-verlof" class="mt-4 bg-slate-200 p-2 rounded">
-                      <div class="flex">
-                        <h4 class="pt-1">Onbetaald (bijzonder) verlof</h4>
-                        <div class="opslag actief ml-4" title="Invoer opslaan"></div>
-                      </div>
-                      <div class="grid grid-cols-[270px_150px_1fr]">
-                        <label for="select-onbetaald-verlof" class="leading-11 mb-2">Opname
-                          onbetaald
-                          verlof</label>
-                        <input id="select-onbetaald-verlof" type="checkbox"
-                          class="form-check-input mt-3 mb-3 updater">
-                        <span></span>
-                        <label for="input-wtf-onbetaald-verlof" class="leading-12 mt-3">Wtf
-                          verlof</label>
-                        <input type="text"
-                          class="form-control h-10 shadow-sm placeholder:text-sm! w-32!  no-check1 mt-2 updater"
-                          id="input-wtf-onbetaald-verlof" name="Aangepaste wtf">
-                        <span class="leading-12 text-sm pl-2">Indien leeg wordt de standaard
-                          berekende wtf
-                          <span id="standaard-wtf-seniorenverlof"></span> gebruikt</span>
-                      </div>
-                    </section>
-                  </section>
+              <!--? TELEFOONVERGOEDING-->
+              <label for="telefoonvergoeding" class="mt-3">Telefoonvergoeding :</label>
+              <input class="form-check-input mt-3 mb-3 updater" type="checkbox"
+                id="telefoonvergoeding" name="Telefoonvergoeding">
+              <span></span>
+              <label for="input-netto-vergoedingen" class="leading-11">Overige netto
+                vergoedingen</label>
+              <input type="text"
+                class="form-control h-10 shadow-sm placeholder:text-sm! w-32! updater"
+                id="input-netto-vergoedingen" name="Netto vergoedingen">
+              <span class="text-sm leading-11"></span>
+              <label for="input-netto-inhoudingen" class="leading-11">Netto
+                inhoudingen</label>
+              <input type="text"
+                class="form-control h-10 shadow-sm placeholder:text-sm! w-32! updater"
+                id="input-netto-inhoudingen" name="Netto inhoudingen">
+              <span class="text-sm leading-11">(Bijvoorbeeld inhouding PV / netto
+                inhouding
+                fitness
+                /
+                etc.)</span>
+            </section>
+            <!--* VERLOF -->
+            <section id="verlof" class=" bg-slate-100 p-3 rounded m-2 max-w-230">
+              <h2 class="hidden">Verlof</h2>
+              <div class="text-[1.5rem] font-medium block">Verlof</div>
+              <!--? SENIORENVERLOF -->
+              <section id="senioren-verlof" class="bg-slate-200 p-2 rounded">
+                <h3 class="hidden">Seniorenverlof</h3>
+                <div class="grid grid-cols-[30px_150px_50px_1fr]">
+                  <input type="checkbox" class="form-check-input mt-2 mb-3 updater"
+                    id="seniorenverlof-actief" checked>
+                  <label for="seniorenverlof-actief"
+                    class="pt-0 text-[1.5rem] font-medium block">Seniorenverlof</label>
+                  <div class="opslag actief ml-6 mt-2" title="Invoer opslaan"></div>
+                  <span id="dubbel-verlof-waarschuwing-seniorenverlof"
+                    class="ml-1 text-red-500 leading-10 dubbel-check-span text-sm"></span>
                 </div>
-              </div>
-              <div class="mt-90"><button class="btn btn-info"
-                  id="test-button-1">TEST</button></div>
+                <div class="grid-cols-[270px_150px_1fr] hidden" id="seniorenverlof-sectie">
+                  <label for="select-seniorenverlof" class="leading-11 mb-2">Soort
+                    seniorenverlof</label>
+                  <select name="select-seniorenverlof" id="select-seniorenverlof"
+                    class="form-select h-11! updater  col-span-2 w-100! dubbel-check">
+                    <option value="Geen">Geen</option>
+                    <option value="basis">Basis seniorenverlof</option>
+                    <option value="beide">Basis en extra
+                      seniorenverlof</option>
+                    <option value="62_plus">62+ regeling</option>
+                  </select>
+                  <div>Berekende wtf <span class="text-xs italic">(standaard
+                      berekening)</span></div>
+                  <span id="seniorenverlof-berekende-wtf" class="ml-2"></span>
+                  <span class="ml4 text-sm ml-2 leadin-13" id="senVerlofBerekening"></span>
+                  <label for="input-aangepaste-wtf" class="leading-12 mt-3">Aangepaste
+                    wtf</label>
+                  <input type="text"
+                    class="form-control h-10 shadow-sm placeholder:text-sm! w-32!  no-check1 mt-2 updater"
+                    id="input-aangepaste-wtf" name="Aangepaste wtf">
+                  <span class="leading-13 text-sm pl-2">Indien leeg wordt de standaard
+                    berekende wtf
+                    <span id="standaard-wtf-seniorenverlof"></span> gebruikt</span>
+                </div>
+              </section>
+              <!--* OUDERVERLOF -->
+              <section id="ouder-verlof" class="mt-4 bg-slate-200 p-2 rounded">
+                <h4 class="hidden">Ouderverlof</h4>
+                <div class="grid grid-cols-[30px_150px_50px_1fr]">
+                  <input type="checkbox" class="form-check-input mt-2 mb-3 updater"
+                    id="ouderverlof-actief" checked>
+                  <label for="ouderverlof-actief" class="pt-1 text-[1.5rem] font-medium block">
+                    Ouderverlof
+                  </label>
+                  <div class="opslag actief ml-4 mt-2" title="Invoer opslaan"></div>
+                  <span id="dubbel-verlof-waarschuwing"
+                    class="ml-1 text-red-500 leading-10 dubbel-check-span text-sm"></span>
+                </div>
+                <div class="grid-cols-[270px_150px_1fr] hidden" id="ouderverlof-sectie">
+                  <label for="select-ouderverlof" class="leading-11 mb-2">Soort
+                    verlof</label>
+                  <select name="select-ouderverlof" id="select-ouderverlof"
+                    class="form-select h-11! col-span-2 w-100! updater dubbel-check">
+                    <option value="Geen">Geen</option>
+                    <option value="geboorteverlof">Aanvullende
+                      geboorteverlof (70%)</option>
+                    <option value="osvw">Wettelijk ouderschapsverlof (70%)</option>
+                    <option value="osvb">Betaald ouderschapsverlof CAO MBO (55%)</option>
+                    <option value="osvo">Onbetaald ouderschapsverlof CAO MBO (0%)</option>
+                  </select>
+                  <label for="input-wtf-ouderverlof" class="leading-11">Werktijdfactor
+                    opname
+                    verlof</label>
+                  <input type="text"
+                    class="form-control h-10 shadow-sm placeholder:text-sm! w-32! mt-1 no-check1 updater"
+                    id="input-wtf-ouderverlof" name="Wtf ouderverlof">
+                  <span class="ml4 text-sm leading-11">(Dit kan een gemiddelde
+                    werktijdfactor
+                    zijn)</span>
+                  <div class="mt-3">Kortingspercentage <span
+                      class="text-xs italic">(o.b.v.
+                      keuze
+                      verlof)</span></div>
+                  <span id="ouderverlof-kortingspercentage" class="mt-3 ml-2 "></span>
+                  <span></span>
+                  <label for="ouderverlof-aangepast-kortingspercentage"
+                    class="mt-3">Aangepast
+                    kortingspercentage</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    class="form-control h-10 shadow-sm placeholder:text-sm! w-32! mt-2 no-check1 updater"
+                    id="ouderverlof-aangepast-kortingspercentage"
+                    name="Aangepast kortingspercentage">
+                  <span class="text-sm leading-11 mt-1" id="ouder-info-aangepast">Alleen
+                    bij
+                    betaald
+                    ouderschapsverlof vanuit de
+                    CAO MBO</span>
+                </div>
+              </section>
+              <!--* ONBETAALD VERLOF -->
+              <section id="onbetaald-verlof" class="mt-4 bg-slate-200 p-2 rounded">
+                <h4 class="hidden">Onbetaald (bijzonder) verlof</h4>
+                <div class="grid grid-cols-[30px_350px_50px_1fr]">
+                  <input type="checkbox" class="form-check-input mt-2 mb-3 updater"
+                    id="onbetaald-verlof-actief" checked>
+                  <label for="onbetaald-verlof-actief" class="pt-1 text-[1.5rem] font-medium block">
+                    Onbetaald (bijzonder) verlof
+                  </label>
 
-              <div><label for="save-data" class="mr-2">Ingevoerde gegevens bewaren</label><input
-                  class="form-check-input" type="checkbox" id="save-data"></div>
+                  <div class="opslag actief ml-4" title="Invoer opslaan"></div>
+                </div>
+                <div class="grid grid-cols-[270px_150px_50px_50px_1fr]">
+
+                  <label for="input-wtf-onbetaald-verlof"
+                    class="leading-9 mt-1 col-span-1">Werktijdfactor
+                    onbetaald verlof</label>
+                  <input type="text"
+                    class="form-control h-10 shadow-sm placeholder:text-sm! w-32!  no-check1 mt-0 updater"
+                    id="input-wtf-onbetaald-verlof"
+                    name="Aangepaste wtf">
+                  <span></span>
+                  <div class="mt-3 col-span-3">Afwijkende percentage werknemersdeel
+                    pensioenpremies
+                    <button class="ml-2" id="btn-info-afwijkend-percentage-ov"><i
+                        class="fa-solid fa-circle-info cursor-pointer hover:text-blue-600">
+                      </i>
+                    </button></div>
+
+                  <input type="checkbox"
+                    class="form-check-input mt-3 mb-1 updater"
+                    id="select-afwijkend-kortingspercentage-ov"
+                    name="Afwijkend kortingspercentage onbetaald verlof">
+
+                </div>
+              </section>
+            </section>
+          </div>
+        </div>
+
+        <div><label for="save-data" class="mr-2">Ingevoerde gegevens bewaren</label><input
+            class="form-check-input" type="checkbox" id="save-data">
+        </div>
+
+      </div>
+      <!-- <button id="openModal" class="bg-blue-500 text-white px-4 py-2 rounded">
+        Meer info
+      </button> -->
+
+      <!--& MODAL INFO SOORT STROOK -->
+      <div id="modal-soort-strook"
+        class="fixed inset-0 bg-black/50 hidden items-center justify-center">
+        <div class="bg-white p-6 rounded-lg max-w-md w-full">
+
+          <h5 class="text-md! font-bold mb-4">Waarom een loonstrook uit het dossier?</h5>
+          <p>
+            Een pdf kan bestaan uit verschillende lagen (tekstlaag, afbeeldingslaag, etc.) en
+            de structuur kan sterk variëren afhankelijk van hoe de pdf is gegenereerd. Een
+            loonstrook die rechtstreeks uit het digitale dossier komt, heeft meestal een
+            consistente structuur en bevat een duidelijke tekstlaag die gemakkelijk kan worden
+            geanalyseerd. Dit maakt het mogelijk om automatisch relevante gegevens te
+            extraheren met een hogere mate van nauwkeurigheid. <br>Aan de andere kant kunnen
+            gescande loonstroken of loonstroken die zijn opgeslagen als afbeeldingen,
+            moeilijker te analyseren zijn omdat ze mogelijk geen tekstlaag bevatten of omdat
+            de tekstlaag onduidelijk kan zijn, wat kan leiden tot fouten bij het uitlezen van
+            de gegevens. Daarom adviseren we om een loonstrook te gebruiken die rechtstreeks
+            uit het dossier is geëxporteerd, om de beste resultaten te garanderen bij het
+            automatisch uitlezen van de benodigde gegevens voor de berekening.
+          </p>
+          <button id="closeModal" class="mt-4 bg-gray-500 text-white px-3 py-1 rounded">
+            Sluiten
+          </button>
+        </div>
+      </div>
+
+      <!--& INFO MODAL AFWIIJKEND PERCENTAGE OV -->
+      <div id="modal-info-afwijkend-percentage-ov"
+        class="fixed inset-0 bg-black/50 hidden items-center justify-center">
+        <div class="bg-white p-6 rounded-lg max-w-md w-full">
+
+          <h5 class="text-md! font-bold mb-4">Afwijkende percentage werknemersdeel
+            persioenpremies</h5>
+          <p>
+            Conform artikel 4 lid 2 van Bijlage I van de CAO MBO wordt over het eerste half jaar van
+            onbetaald verlof 40% van het werkgeversdeel van de pensioenpremies verhaalt op de
+            medewerker. Na dat half jaar wordt er 60% verhaalt en na een jaar 100%.
+          </p>
+          <p>Om een inschatting te maken over een heel jaar (eerste jaar) zou je het percentage op
+            50% kunnen zetten.</p>
+          <div class="flex justify-between">
+            <button id="btn-ov-50procent" class="btn btn-success">50% gebruiken</button>
+            <button id="closeModal-afwijkend-percentage-ov" class="btn btn-secondary">
+              Sluiten
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!--& PRIVACY MODAL -->
+      <div id="modal-privacy"
+        class="fixed inset-0 bg-black/50 hidden items-center justify-center overflow-auto">
+        <div class="bg-white p-6 rounded-lg m-10 w-full">
+          <p class="mb-4">
+            DCTerra hecht grote waarde aan de bescherming van persoonsgegevens.
+            Binnen onze applicatie kan een gebruiker vrijwillig een loonstrook uploaden
+            met als doel hieruit automatisch relevante gegevens te extraheren ten
+            behoeve van een berekening. Wij gaan hierbij als volgt om met uw gegevens:
+          </p>
+          <ul class="list-disc pl-6 space-y-4">
+            <li>
+              <strong>Doel van de verwerking</strong>
+              <p class="mt-1">
+                De loonstrook wordt uitsluitend gebruikt om automatisch bepaalde
+                inkomensgegevens uit te lezen die nodig zijn voor het uitvoeren van
+                een berekening binnen onze applicatie.
+              </p>
+            </li>
+            <li>
+              <strong>Geen opslag van de loonstrook</strong>
+              <p class="mt-1">De geüploade loonstrook wordt:</p>
+              <ul class="list-disc pl-6 mt-2 space-y-1">
+                <li>Niet opgeslagen in onze systemen</li>
+                <li>Niet bewaard op onze servers</li>
+                <li>Niet toegevoegd aan een dossier of gebruikersprofiel</li>
+              </ul>
+              <p class="mt-2">
+                De verwerking vindt uitsluitend tijdelijk plaats voor het uitvoeren van
+                de berekening.
+              </p>
+            </li>
+            <li>
+              <strong>Geen opslag van uitgelezen gegevens</strong>
+              <p class="mt-1">De gegevens die uit de loonstrook worden geëxtraheerd:</p>
+              <ul class="list-disc pl-6 mt-2 space-y-1">
+                <li>Worden niet permanent opgeslagen</li>
+                <li>Worden niet gekoppeld aan een gebruiker</li>
+                <li>Worden niet gedeeld met derden</li>
+                <li>Worden niet gebruikt voor andere doeleinden dan de directe berekening</li>
+              </ul>
+              <p class="mt-2">
+                Na voltooiing van de berekening worden zowel het document als de
+                uitgelezen gegevens uit het werkgeheugen verwijderd.
+              </p>
+            </li>
+            <li>
+              <strong>Rechtsgrond en minimale gegevensverwerking</strong>
+              <p class="mt-1">
+                De verwerking vindt plaats op basis van toestemming van de gebruiker
+                (artikel 6 lid 1 sub a AVG). Wij verwerken uitsluitend de gegevens
+                die strikt noodzakelijk zijn voor het uitvoeren van de gevraagde
+                berekening (dataminimalisatie).
+              </p>
+            </li>
+            <li>
+              <strong>Beveiliging</strong>
+              <p class="mt-1">
+                Indien de verwerking via een server plaatsvindt, gebeurt dit via een
+                beveiligde (SSL/TLS) verbinding. Er worden geen documenten of gegevens
+                langer bewaard dan technisch noodzakelijk is voor het uitvoeren van de
+                berekening.
+              </p>
+            </li>
+          </ul>
+          <button id="sluit-privacy" class="mt-4 bg-gray-500 text-white px-3 py-1 rounded">
+            Sluiten
+          </button>
+        </div>
+
+      </div>
+
+      <!--& RESULTAAT MODAL -->
+      <div id="modal-resultaat"
+        class="fixed inset-0 bg-black/50 hidden items-center justify-center text-lg ">
+        <div class="bg-white p-6 rounded-lg max-w-xl w-full">
+          <div class="text-center "><h3>Resultaat van de berekening</div>
+            <div id="resultaat-naam" class="text-sm text-center mb-6"></div>
+            <div class="grid grid-cols-[150px_150px_1fr] ">
+              <!-- rij 1-->
+              <span></span>
+              <span class="col-span-1 font-medium mb-2">Zonder verlof</span>
+              <span class="col-span-1 font-medium">Met verlof</span>
+              <!-- rij 2-->
+              <div class="mb-2">Bruto salaris:</div>
+              <span id="resultaat-bruto-salaris-zonder-verlof">1</span>
+              <span id="resultaat-bruto-salaris-met-verlof">4</span>
+              <!-- rij 3-->
+              <div class="mb-2">Netto salaris:</div><span
+                id="resultaat-netto-salaris-zonder-verlof">2</span><span
+                id="resultaat-netto-salaris-met-verlof">5</span>
+              <div class="mb-2 font-medium">Te betalen:</div><span
+                id="resultaat-te-betalen-zonder-verlof" class="font-medium">3</span><span
+                id="resultaat-te-betalen-met-verlof" class="font-medium">6</span>
+              <div class="col-span-3 border mt-2"></div>
+              <div class="mt-3 mb-2 text-2xl ">Verschil:</div>
+              <div class="mt-3 mb-4 text-2xl"><span id="resultaat-verschil">0</span></div>
+            </div>
+            <p class="mb-8 text-primary text-md-start">Het
+              opnemen van verlof kost je dus (ongeveer) <span id="resultaat-kost">0</span> netto per
+              maand. *</p>
+            <div class="flex justify-content-between mt-4">
+              <button id="btn-volledig-resultaat" class="btn btn-primary">Volledig
+                resultaat</button>
+              <button id="btn-sluit-resultaat" class="btn btn-secondary">Sluiten</button></div>
+            <div class="mt-8">
+              <p class="text-sm italic mt-6">* Aan deze berekening kunnen geen rechten worden
+                ontleend.</p>
+            </div>
+          </div>
+        </div>
+
+        <!--& Loonstrook Modal -->
+        <div id="modal-loonstrook"
+          class="fixed inset-0 bg-black/50 hidden1 items-center justify-center text-lg">
+          <div class="bg-white max-w-4xl w-full">
+            <div id="loonstrook-container" class="loonstrook-container">
+
+              <div
+                class="bg-(--loonstrook-blauw) text-white px-4 pt-2 font-semibold flex justify-between"><div><span>Loonstrook</span>
+                  <span id="maand-en-jaar"></span><span> - Stichting Drenthe College
+                    Terra</span></div><span class="text-sm mt-auto pb-[0.1rem]">(Pro forma
+                  strook)</span></div>
+
+              <div
+                class="bg-(--loonstrook-lichterblauw)  grid grid-cols-[1fr_250px]">
+                <div id="persoonsgegevens" class="px-4 pt-1">
+                  <div id="loonstrook-naam"></div>
+                  <div id="loonstrook-straat"></div>
+                </div>
+                <div class="mr-4 flex justify-content-between pt-2">
+                  <div class=""><img src="src/img/0.jpg" width="70" alt></div>
+                  <div class=""><img src="src/img/1.jpg" width="80" alt></div>
+                </div>
+                <div></div>
+                <div class="mr-4 mb-auto flex justify-between">
+                  <span id="loonstrook-top-bruto"></span> <span id="loonstrook-top-tebetalen"></span></div>
+              </div>
 
             </div>
-            <button class="btn btn-danger" id="sophia">Sophia</button>
-            <script type="module" src="/src/main.js" defer></script>
-            <script type="module" src="/src/pdf.js"></script>
-            <script
-              src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-              integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-              crossorigin="anonymous"></script>
 
-          </body>
+            <button id="closeModalLoonstrook" class="btn btn-danger">Sluiten</button>
+          </div>
 
-        </html>
+        </div>
+
+      </div>
+
+    </div>
+    <button id="btn-resultaat" class="btn btn-info">Berekenen</button>
+    <button id="btn-loonstrook" class="btn btn-info">Loonstrook</button>
+    <div class="mt-5"><button class="btn btn-info"
+        id="test-button-1">TEST2</button>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/pdf.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+      defer></script>
+
+  </body>
+
+</html>

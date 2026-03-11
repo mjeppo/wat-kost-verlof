@@ -166,6 +166,7 @@ async function analyzeLoonstrook(file) {
     document.getElementById("applyDataBtn2").disabled = false;
     document.getElementById("applyDataBtn2").classList.remove("btn-outline-success");
     document.getElementById("applyDataBtn2").classList.add("btn-success");
+    document.getElementById("opvulling").classList.add("hidden");
   }
 
   if (!document.getElementById("keuze-eerst-analyse").checked) {
@@ -175,13 +176,30 @@ async function analyzeLoonstrook(file) {
     showPreview(payrollData);
     // document.getElementById("extra-knop-voor-verwerking").classList.add("hidden");
   }
+
+  parsePayroll(fullText);
 }
+
+document.getElementById("debugOutput").addEventListener("click", () => {
+  const text = document.getElementById("debugOutput").textContent;
+  if (!text || text.trim() === "") return;
+  navigator.clipboard
+    .writeText(text)
+    .then(() => {
+      Toast.success("Tekst gekopieerd naar clipboard!");
+    })
+    .catch((err) => {
+      Toast.error("Fout bij kopiëren: " + err);
+    });
+});
 
 function showPreview(payrollData) {
   if (!payrollData) return;
   let fullText = "";
 
   document.getElementById("previewCard").classList.remove("hidden");
+  document.getElementById("previewNaam").textContent = payrollData.naam;
+  document.getElementById("previewNummer").textContent = payrollData.nummer;
   document.getElementById("previewSchaal").textContent = payrollData.schaal;
   document.getElementById("previewWtf").textContent = FormateerGetallen.decimalen4(payrollData.wtf);
   document.getElementById("previewAbp").textContent = FormateerGetallen.valuta(payrollData.abpJaarinkomen);
@@ -203,26 +221,14 @@ function showPreview(payrollData) {
 
 //* EXTRACTIE FUNCTIES
 
-function extractDienstverbandBlokken(text) {
-  const regex = /DV\d+[\s\S]*?(?=DV\d+|$)/g;
-  return text.match(regex) || [];
-}
-
-function extractSchaalUitBlok(blok) {
-  const match = blok.match(/\d{2}-\d{2}-\d{4}\s+([\d,]+)[\s\S]*?(\d+)\.?\s+(\d+)\s+[\d,]+/);
-
-  if (!match) return null;
-
-  return {
-    wtf: parseDutchNumber(match[1]),
-    loonschaal: parseInt(match[2], 10),
-    functieschaal: parseInt(match[3], 10),
-    schaal: `${match[2]}.${match[3]}`,
-  };
-}
-
 function extractPayrollData(text) {
   return {
+    naam: extractNaamEnNummer(text)?.naam || extractNaam(text) || "Niet gevonden",
+    nummer: extractNaamEnNummer(text)?.nummer || "Niet gevonden",
+    straat: extractAdres(text)?.straatHuisnummer || "Niet gevonden",
+    postcode: extractAdres(text)?.postcode || "Niet gevonden",
+    woonplaats: extractAdres(text)?.woonplaats || "Niet gevonden",
+    woonland: extractAdres(text)?.woonland || "Niet gevonden",
     schaal: extractSchaal(text),
     wtf: extractWTF(text),
     abpJaarinkomen: extractABPJaarinkomen(text),
@@ -242,6 +248,24 @@ function extractPayrollData(text) {
   };
 }
 
+let payrollData = {};
+
+export function parsePayroll(text) {
+  payrollData = extractPayrollData(text);
+}
+
+export function naam() {
+  return payrollData.naam !== undefined ? payrollData.naam + " (" + payrollData.nummer + ")" : "";
+}
+
+export function adres() {
+  const straat = payrollData.straat || "";
+  const postcode = payrollData.postcode || "";
+  const woonplaats = payrollData.woonplaats || "";
+  const woonland = payrollData.woonland || "";
+  return { straat, postcode, woonplaats, woonland };
+}
+
 function parseDutchNumber(value) {
   if (!value) return null;
 
@@ -250,6 +274,32 @@ function parseDutchNumber(value) {
       .replace(/\./g, "") // verwijder duizendtallen
       .replace(",", "."), // komma → punt
   );
+}
+
+document.getElementById("handmatigGegevensInvoerenBtn").addEventListener("click", () => {
+  document.getElementById("invoer-sectie").classList.remove("hidden");
+  document.getElementById("previewCard").classList.add("hidden");
+  document.getElementById("extra-knop-voor-verwerking").classList.add("hidden");
+  document.getElementById("applyDataBtn2").classList.add("hidden");
+  document.getElementById("handmatigGegevensInvoerenBtn").classList.add("hidden!");
+});
+
+function extractDienstverbandBlokken(text) {
+  const regex = /DV\d+[\s\S]*?(?=DV\d+|$)/g;
+  return text.match(regex) || [];
+}
+
+function extractSchaalUitBlok(blok) {
+  const match = blok.match(/\d{2}-\d{2}-\d{4}\s+([\d,]+)[\s\S]*?(\d+)\.?\s+(\d+)\s+[\d,]+/);
+
+  if (!match) return null;
+
+  return {
+    wtf: parseDutchNumber(match[1]),
+    loonschaal: parseInt(match[2], 10),
+    functieschaal: parseInt(match[3], 10),
+    schaal: `${match[2]}.${match[3]}`,
+  };
 }
 
 function extractWTF(text) {
@@ -364,7 +414,7 @@ function extractAov(text) {
     soortAov = "premie_aov_2_string";
   }
 
-  console.log("premie:", premie, "abp:", abp, " percentage:", percentage, "soortAov:", soortAovTekst, "grondslag:", extractGrondslagAov(text));
+  //console.log("premie:", premie, "abp:", abp, " percentage:", percentage, "soortAov:", soortAovTekst, "grondslag:", extractGrondslagAov(text));
 
   return {
     preview: match ? " Ja: " + soortAovTekst : "Nee",
@@ -385,14 +435,44 @@ function extractGrondslagAov(text) {
 function extractFitness(text) {
   const match = text.match(/Inhouding salaris i\.v\.m\. fitness abonnement\s+(-?[\d.,]+)/);
   if (!match) return 0;
-  // return parseDutchNumber(match[1]) * -1;
-  return 100;
+  return parseDutchNumber(match[1]) * -1;
 }
 
 function extractFiets(text) {
   const match = text.match(/Inhouding salaris i.v.m fietsplan\s+(-?[\d.,]+)/);
   if (!match) return 0;
-  return parseDutchNumber(match[1]) * -1;;
+  return parseDutchNumber(match[1]) * -1;
+}
+
+export function extractNaamEnNummer(text) {
+  const match = text.match(/Woonland:\s+[A-Za-z\s]+?\s+€\s*[\d.,]+\s+€\s*[\d.,]+\s+(.+?)\s*\((\d+)\)/);
+
+  if (!match) return null;
+
+  return {
+    naam: match[1].trim(),
+    nummer: match[2],
+  };
+}
+
+
+
+function extractAdres(text) {
+  const regex = /TE BETALEN LOON\s+(.+?)\s+(\d{4}\s?[A-Z]{2})\s+([A-Z][A-Z\s\-]+?)\s+Woonland:\s*([A-Za-z\s]+)/i;
+  const match = text.match(regex);
+
+  if (!match) return null;
+
+  return {
+    straatHuisnummer: match[1].trim(),
+    postcode: match[2].trim(),
+    woonplaats: match[3].trim(),
+    woonland: match[4].trim(),
+  };
+}
+
+export const mdwStraat = () => {
+  return extractAdres.straatHuisnummer;
 }
 
 function brutoInhoudingen(text) {
@@ -416,8 +496,7 @@ function sumObjectValues(obj) {
   }, 0);
 }
 
-//* GEGEVENS TOEPASSEN OP FORMULIER
-document.getElementById("applyDataBtn2").addEventListener("click", () => {
+function gegevensToepassenOpFormulier(data) {
   if (!lastExtractedData) return;
 
   //@ Velden in formulier invullen
@@ -439,6 +518,7 @@ document.getElementById("applyDataBtn2").addEventListener("click", () => {
   document.getElementById("aanvullende-ziektekosten").checked = !!lastExtractedData.aanvZiektekosten;
   document.getElementById("ehbo-vergoeding").checked = !!lastExtractedData.ehboToelage;
   document.getElementById("bhv-vergoeding").checked = !!lastExtractedData.bhvVergoeding;
+  document.getElementById("input-bruto-inhouding").value = lastExtractedData.brutoInhoudingen.toFixed(2).replace(".", ",");
 
   //@ Instellen knoppen/status
   Toast.success("Gegevens succesvol toegepast!");
@@ -448,6 +528,16 @@ document.getElementById("applyDataBtn2").addEventListener("click", () => {
   document.getElementById("previewCard").classList.add("hidden");
   $("#invoer-sectie").removeClass("hidden");
   $("#applyDataBtn2").addClass("hidden!");
+  $("#handmatigGegevensInvoerenBtn").addClass("hidden!");
 
   updateBerekeningen();
+}
+
+//* GEGEVENS TOEPASSEN OP FORMULIER
+document.getElementById("applyDataBtn2").addEventListener("click", () => {
+  gegevensToepassenOpFormulier();
+});
+
+$("#applyDataBtn").on("click", () => {
+  gegevensToepassenOpFormulier();
 });
