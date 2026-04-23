@@ -1,5 +1,4 @@
 import { schalenArray2025_1, witte_tabel_2026 } from "./schalen.js";
-import "./style.css";
 import { FormateerGetallen, formatInput, checkInput, checkInputLeegMag, privacyStatementToggle, capitalize } from "./utils";
 import { naam, adres } from "./pdf.js";
 import { bedragen, aov_premies_strings } from "./bedragen";
