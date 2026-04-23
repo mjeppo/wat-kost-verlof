@@ -94,11 +94,13 @@ function loadFromLocalStorage() {
   document.getElementById("aov-select").selectedIndex = aanvullendeGegevensOpslaan ? (data.aov ?? 0) : 0;
 
   // BRUTO ELEMENTEN OPHALEN
-  document.getElementById("aanvullende-ziektekosten").checked = aanvullendeGegevensOpslaan ? !!data.aanvullendeZiektekosten : false;
-  document.getElementById("ehbo-vergoeding").checked = aanvullendeGegevensOpslaan ? !!data.ehboVergoeding : false;
-  document.getElementById("bhv-vergoeding").checked = aanvullendeGegevensOpslaan ? !!data.bhvVergoeding : false;
-  document.getElementById("periodieke-vakantietoeslag").checked = aanvullendeGegevensOpslaan ? !!data.periodieke_vakantietoeslag : false;
-  document.getElementById("periodieke-eindejaarsuitkering").checked = aanvullendeGegevensOpslaan ? !!data.periodieke_eindejaarsuitkering : false;
+  document.getElementById("aanvullende-ziektekosten").checked = brutoElementenOpslaan ? !!data.aanvullendeZiektekosten : false;
+  document.getElementById("ehbo-vergoeding").checked = brutoElementenOpslaan ? !!data.ehboVergoeding : false;
+  document.getElementById("bhv-vergoeding").checked = brutoElementenOpslaan ? !!data.bhvVergoeding : false;
+  document.getElementById("periodieke-vakantietoeslag").checked = brutoElementenOpslaan ? !!data.periodieke_vakantietoeslag : false;
+  document.getElementById("periodieke-eindejaarsuitkering").checked = brutoElementenOpslaan ? !!data.periodieke_eindejaarsuitkering : false;
+  document.getElementById("input-bruto-vergoeding").value = brutoElementenOpslaan ? (data.brutoVergoeding ?? "") : 0;
+  document.getElementById("input-bruto-inhouding").value = brutoElementenOpslaan ? (data.brutoInhouding ?? "") : 0;
 
   // NETTO ELEMENTEN OPHALEN
   document.getElementById("telefoonvergoeding").checked = nettoElementenOpslaan ? !!data.telefoonvergoeding : false;
@@ -110,11 +112,11 @@ function loadFromLocalStorage() {
   document.getElementById("input-reiskosten-wwk").value = nettoElementenOpslaan ? (data.reiskostenWwk ?? "") : "";
   document.getElementById("input-thuiswerkvergoeding").value = nettoElementenOpslaan ? (data.thuiswerkVergoeding ?? "") : "";
 
-  // SENIORENVERLOF OPHALEN
+  //& SENIORENVERLOF OPHALEN
   document.querySelector("#select-seniorenverlof").selectedIndex = seniorenverlofOpslaan ? (data.soortSeniorenverlof ?? 0) : 0;
   document.getElementById("input-aangepaste-wtf").value = seniorenverlofOpslaan ? (data.wtfSeniorenverlof ?? "") : "";
 
-  // OUDERVERLOF OPHALEN
+  //& OUDERVERLOF OPHALEN
   document.querySelector("#select-ouderverlof").selectedIndex = ouderVerlofOpslaan ? (data.soortOuderverlof ?? 0) : 0;
   document.getElementById("input-wtf-ouderverlof").value = ouderVerlofOpslaan ? (data.wtfOuderverlof ?? "") : "";
   document.getElementById("ouderverlof-aangepast-kortingspercentage").value = ouderVerlofOpslaan
@@ -122,6 +124,14 @@ function loadFromLocalStorage() {
     : "";
 
   document.getElementById("keuze-eerst-analyse").checked = data.keuzeAnalyse ?? false;
+
+  //& ONBETAALD VERLOF OPHALEN
+  onbetaaldVerlofOpslaan = true; // TODO : opslag ja of nee nog implementeren
+  document.getElementById("input-wtf-onbetaald-verlof").value = onbetaaldVerlofOpslaan ? (data.wtfOnbetaaldVerlof ?? "") : "";
+  document.getElementById("input-afwijkend-premiepercentage-ov").value = onbetaaldVerlofOpslaan
+    ? (data.onbetaaldVerlofAangepastKortingspercentage ?? "")
+    : "";
+  document.getElementById("select-afwijkend-premiepercentage-ov").checked = data.afwijkendPremiepercentageOv ?? false;
 
   // schaalBedragEl.value = schaalDropdown.value;
 }
@@ -186,6 +196,18 @@ const vandaag = new Date().toISOString().split("T")[0];
 // console.log(vandaag);
 
 // peildatumEl.value = vandaag;
+
+const peilMaand = () => {
+  const datum = new Date(peildatumEl.value || vandaag);
+  return datum.getMonth() + 1; // Maanden zijn 0-indexed, dus we tellen er 1 bij op
+};
+
+$("#peildatum").on("change", function () {
+  console.log("Nieuwe peildatum: ", this.value);
+  updateBerekeningen();
+  loonstrookVullen();
+});
+
 const selectedOption = schaalDropdown.options[schaalDropdown.selectedIndex];
 
 let schaalBedrag = selectedOption.dataset.salaris;
@@ -388,6 +410,7 @@ const brutoVergoedingBerekenen = () => {
 };
 
 const brutoInhouding = () => {
+  // console.log("inhouding:", document.getElementById("input-bruto-inhouding").value);
   return document.getElementById("input-bruto-inhouding").value
     ? parseFloat(document.getElementById("input-bruto-inhouding").value.replace(",", "."))
     : 0;
@@ -474,7 +497,11 @@ const seniorenverlofBerekenen = () => {
 };
 
 const ouderverlofBerekenen = () => {
-  return document.querySelector("#select-ouderverlof").selectedIndex !== 0;
+  return document.querySelector("#select-ouderverlof").selectedIndex !== 0 && document.querySelector("#ouderverlof-actief");
+};
+
+const onbetaaldVerlofBerekenen = () => {
+  return document.querySelector("#onbetaald-verlof-actief").checked;
 };
 
 const thuiswerkVergoeding = () => {
@@ -557,13 +584,14 @@ const normaleUrenPerMaand = () => {
   const maand = vandaag.getMonth(); // 0-based
   const jaar = vandaag.getFullYear();
   const peil = new Date(document.getElementById("peildatum").value);
-  const peilMaand = peil.getMonth() + 1;
+  const peilMaand = peil.getMonth();
   const peilJaar = peil.getFullYear();
   // console.log(peilJaar, peilMaand);
-  return (document.getElementById("peildatum") ? getWerkdagenInMaand(peilJaar, maand + 1) : getWerkdagenInMaand(jaar, maand + 1)) * 7.372; // 7.5 uur per werkdag
+  // console.log(peilMaand, maand, (document.getElementById("peildatum").value ? getWerkdagenInMaand(peilJaar, peilMaand + 1) : getWerkdagenInMaand(jaar, maand + 1)) * 7.372)
+  return (document.getElementById("peildatum").value ? getWerkdagenInMaand(peilJaar, peilMaand) : getWerkdagenInMaand(jaar, maand)) * 7.372; // 7.5 uur per werkdag
 };
 
-// console.log(normaleUrenPerMaand(), );
+// console.log(getWerkdagenInMaand(2026, 0), getWerkdagenInMaand(2026, 1), getWerkdagenInMaand(2026, 2), getWerkdagenInMaand(2026, 3), getWerkdagenInMaand(2026, 4), getWerkdagenInMaand(2026, 5), getWerkdagenInMaand(2026, 6), getWerkdagenInMaand(2026, 7), getWerkdagenInMaand(2026, 8), getWerkdagenInMaand(2026, 9), getWerkdagenInMaand(2026, 10), getWerkdagenInMaand(2026, 11), normaleUrenPerMaand());
 
 //#region SENIORENVERLOF
 
@@ -655,6 +683,92 @@ const kortingSeniorenverlofExtra = () => {
   return wtfSenXtra * normBedrag();
 };
 
+const opgenomenSeniorenverlofWtf = () => {
+  const basis = (170 / 1659) * wtf();
+  const opname = wtfSeniorenverlof();
+  const opnameBasis = opname < basis ? opname : basis;
+  const opnameExtra = opname - opnameBasis < 0 ? 0 : opname - opnameBasis;
+
+  return {
+    opnameBasis: opnameBasis,
+    opnameExtra: opnameExtra,
+  };
+};
+
+const verminderingEhboBhvSeniorenverlof = () => {
+  const verminderingEhbo = ehboVergoeding() * opgenomenSeniorenverlofWtf().opnameExtra;
+  const verminderingBhv = bhvVergoeding() * opgenomenSeniorenverlofWtf().opnameExtra;
+
+  // console.log("vermindering bhv:", verminderingBhv, "vermindering ehbo:", verminderingEhbo);
+  return {
+    verminderingEhbo: verminderingEhbo,
+    verminderingBhv: verminderingBhv,
+  };
+};
+
+verminderingEhboBhvSeniorenverlof();
+
+const teHogeWtfSeniorenverlof = () => {
+  return wtfSeniorenverlof() > standaardWtfSeniorenverlof();
+};
+
+function checkWtfSeniorenverlof() {
+  if (teHogeWtfSeniorenverlof() && document.getElementById("select-seniorenverlof").value !== "Geen") {
+    Toast.warning(
+      `De werktijdfactor voor seniorenverlof is hoger dan de standaard ${standaardWtfSeniorenverlof().toFixed(5).replace(".", ",")}. Controleer of dit klopt!`,
+    );
+    document.getElementById("input-aangepaste-wtf").classList.add("sus-input");
+  } else {
+    document.getElementById("input-aangepaste-wtf").classList.remove("sus-input");
+  }
+}
+
+checkWtfSeniorenverlof();
+
+$("#select-seniorenverlof").on("change", function () {
+  checkWtfSeniorenverlof();
+});
+
+$("#input-aangepaste-wtf").on("change", function () {
+  checkWtfSeniorenverlof();
+});
+
+function checkWtfOuderverlof() {
+  const soort = document.querySelector("#select-ouderverlof").value;
+  if (soort === "Geen") {
+    return false;
+  }
+  console.log(wtfOuderverlof(), wtf());
+  if (wtfOuderverlof() > wtf()) {
+    Toast.warning(
+      `De werktijdfactor voor ouderschapsverlof kan niet hoger zijn dan de reguliere werktijdfactor van ${wtf().toFixed(4).replace(".", ",")}. Controleer of de werktijdfactor voor ouderschapsverlof klopt!`,
+    );
+    document.getElementById("input-wtf-ouderverlof").classList.add("sus-input");
+    return false;
+  } else if (soort === "osvb" || soort === "osvo") {
+    if (wtfOuderverlof() > wtf() * 0.5) {
+      Toast.warning(
+        `Bij (betaald) ouderschapsverlof conform Bijlage E van de cao kun je maximaal de helft van de wekelijkse omvang opnemen. In jouw geval kun je dus maximaal ${wtf() * 0.5} werktijdfactor opnemen. Controleer of de werktijdfactor voor ouderschapsverlof klopt! `,
+      );
+      document.getElementById("input-wtf-ouderverlof").classList.add("sus-input");
+    } else {
+      document.getElementById("input-wtf-ouderverlof").classList.remove("sus-input");
+    }
+  } else {
+    document.getElementById("input-wtf-ouderverlof").classList.remove("sus-input");
+  }
+}
+
+$("#input-wtf-ouderverlof").on("change", function () {
+  checkWtfOuderverlof();
+});
+
+$("#select-ouderverlof").on("change", function () {
+  checkWtfOuderverlof();
+  resultaatBerekenen();
+  loonstrookVullen();
+});
+
 //#endregion SENIORENVERLOF
 
 //#region OUDERVERLOF
@@ -690,6 +804,16 @@ const kortingsPercentageOuderverlofStandaard = () => {
 function updateKortingspercentageOuderverlof() {
   const percentage = kortingsPercentageOuderverlofStandaard();
   document.getElementById("ouderverlof-kortingspercentage").textContent = `${(percentage * 100).toFixed(0)}% `;
+}
+
+function updateOuderverlofElementen() {
+  const soort = document.querySelector('#select-ouderverlof').value;
+  const el = document.getElementById('ouderverlof-berekende-korting');
+  if (soort === 'Geen' || !el) return;
+  const korting = kortingOuderverlof();
+  el.textContent = korting > 0
+    ? `€ ${korting.toFixed(2).replace('.', ',')}`
+    : '—  (vul werktijdfactor in)';
 }
 
 const kortingsPercentageOuderverlof = () => {
@@ -770,11 +894,17 @@ const kortingEhboBhvOuderverlof = () => {
   const bhv = bedragen.BHV;
   const soort = document.querySelector("#select-ouderverlof").value;
   const wtfVerlof = wtfOuderverlof();
+  const kortingsPercentage = kortingsPercentageOuderverlof();
 
   if (soort === "Geen" || soort === "osvw") return { ehbo_korting: 0, bhv_korting: 0 };
-  if (soort === "osvb" || soort === "osvo")
+  if (soort === "osvb")
     return {
-      ehbo_korting: ehboBerekenen() ? Math.round((wtfVerlof / wtf()) * ehbo * 100) / 100 : 0,
+      ehbo_korting: ehboBerekenen() ? Math.round((wtfVerlof / wtf()) * ehbo * kortingsPercentage * 100) / 100 : 0,
+      bhv_korting: bhvBerekenen() ? Math.round(wtfVerlof * bhv * kortingsPercentage * 100) / 100 : 0,
+    };
+  if (soort === "osvo")
+    return {
+      ehbo_korting: ehboBerekenen() ? Math.round(wtfVerlof * ehbo * 100) / 100 : 0,
       bhv_korting: bhvBerekenen() ? Math.round(wtfVerlof * bhv * 100) / 100 : 0,
     };
   if (soort === "geboorteverlof")
@@ -787,6 +917,110 @@ const kortingEhboBhvOuderverlof = () => {
 // console.log(wtfOuderverlof());
 
 //#endregion OUDERVERLOF
+
+//#region *ONBETAALD VERLOF
+
+const wtfOnbetaaldVerlof = () => {
+  const wtfVerlof = document.getElementById("input-wtf-onbetaald-verlof").value
+    ? parseFloat(document.getElementById("input-wtf-onbetaald-verlof").value.replace(",", "."))
+    : 0;
+  return wtfVerlof;
+};
+
+const percentagePensioenpremie = () => {
+  const afwijkendPercentageEl = document.getElementById("input-afwijkend-premiepercentage-ov");
+  const afwijkendSelect = document.getElementById("select-afwijkend-premiepercentage-ov");
+  if (afwijkendSelect.checked) {
+    const percentage = afwijkendPercentageEl.value ? parseFloat(afwijkendPercentageEl.value.replace(",", ".")) : 0;
+    return percentage / 100;
+  } else {
+    return bedragen.percentage_werknemersdeel_pensioen; // standaard 45%
+  }
+};
+
+function zetAfwijkendPercentageOnbetaaldVerlofOp50() {
+  const afwijkendPercentageEl = document.getElementById("input-afwijkend-premiepercentage-ov");
+  const afwijkendSelect = document.getElementById("select-afwijkend-premiepercentage-ov");
+  if (!afwijkendSelect.checked) {
+    afwijkendSelect.checked = true;
+  }
+  afwijkendPercentageEl.disabled = false;
+  afwijkendPercentageEl.value = 50;
+  afwijkendPercentageEl.select();
+  updateBerekeningen();
+  resultaatBerekenen();
+}
+
+const modalAfwijkendePercentageOv = document.getElementById("modal-info-afwijkend-percentage-ov");
+
+$("#btn-ov-50procent").on("click", function () {
+  zetAfwijkendPercentageOnbetaaldVerlofOp50();
+  modalAfwijkendePercentageOv.classList.add("hidden");
+});
+
+const kortingOnbetaaldVerlof = () => {
+  if (!onbetaaldVerlofBerekenen()) return 0;
+  const wtfInput = wtfOnbetaaldVerlof();
+  const factor = Math.ceil(wtfInput * normaleUrenPerMaand() * 100) / 100;
+  return Math.round((factor / normaleUrenPerMaand()) * normBedrag() * 100) / 100;
+};
+
+// kortingOnbetaaldVerlof();
+
+const contracturenPeriode = () => {
+  return bedragen.uren_per_week * bedragen.weken_per_maand;
+};
+
+const extrapremieOnbetaaldVerlof = () => {
+  const wtfInput = wtfOnbetaaldVerlof();
+  const onbetaaldeUren = wtfInput * contracturenPeriode();
+
+  const aopTotaal = (((abpJaarloon() - bedragen.franchise_aop) * ((bedragen.premie_aop_wg + bedragen.premie_aop) / 100)) / 12) * wtf();
+  const extraAop = (onbetaaldeUren / contracturenPeriode()) * (aopTotaal * percentagePensioenpremie() - aopBedrag());
+
+  const pensioenTotaal =
+    (((abpJaarloon() - bedragen.franchise_pensioen) * ((bedragen.premie_penioen_wg + bedragen.premie_pensioen) / 100)) / 12) * wtf();
+  const extraPensioen = (onbetaaldeUren / contracturenPeriode()) * (pensioenTotaal * percentagePensioenpremie() - pensioenBedrag());
+
+  return {
+    extraAop: Math.round(extraAop * 100) / 100,
+    extraPensioen: Math.round(extraPensioen * 100) / 100,
+  };
+};
+
+const kortingEhboBhvOnbetaaldVerlof = () => {
+  const wtfInput = wtfOnbetaaldVerlof();
+  const kortingEhbo = ehboBerekenen() ? wtfInput * ehboVergoeding() : 0;
+  const kortingBhv = bhvBerekenen() ? wtfInput * bhvVergoeding() : 0;
+
+  return {
+    ehbo_korting: Math.round(kortingEhbo * 100) / 100,
+    bhv_korting: Math.round(kortingBhv * 100) / 100,
+  };
+};
+
+// console.log('korting bhv:',kortingEhboBhvOnbetaaldVerlof().bhv_korting)
+
+$("#select-afwijkend-premiepercentage-ov").on("change", function () {
+  const afwijkendPercentageEl = document.getElementById("input-afwijkend-premiepercentage-ov");
+  if (document.getElementById("select-afwijkend-premiepercentage-ov").checked) {
+    afwijkendPercentageEl.disabled = false;
+    afwijkendPercentageEl.value = 45;
+    afwijkendPercentageEl.select();
+  } else {
+    afwijkendPercentageEl.disabled = true;
+    afwijkendPercentageEl.value = "";
+  }
+  updateBerekeningen();
+  resultaatBerekenen();
+});
+
+$("#input-wtf-onbetaald-verlof").on("change", function () {
+  updateBerekeningen();
+  resultaatBerekenen();
+});
+
+//#endregion *ONBETAALD VERLOF
 
 document.querySelectorAll(".updater").forEach((el) => {
   el.addEventListener("change", () => {
@@ -802,6 +1036,7 @@ export function updateBerekeningen() {
   kortingSeniorenverlofBasis();
   kortingSeniorenverlofExtra();
   updateKortingspercentageOuderverlof();
+  updateOuderverlofElementen();
   console.log("Laatste update:", new Date().toLocaleTimeString());
 }
 
@@ -811,7 +1046,14 @@ soortEl.addEventListener("change", () => {
 
 const belastbaarInkomen = () => {
   const optellen =
-    maandBedragBruto() + ziektekostenBedrag() + aanvullendeZiektekostenBedrag() + ehboVergoeding() + bhvVergoeding() + brutoVergoeding();
+    maandBedragBruto() +
+    ziektekostenBedrag() +
+    aanvullendeZiektekostenBedrag() +
+    ehboVergoeding() +
+    bhvVergoeding() +
+    brutoVergoeding() +
+    vakantieToeslag() +
+    eindejaarsUitkering();
 
   const aftrekken =
     kortingSeniorenverlofBasis() +
@@ -904,11 +1146,20 @@ const loonheffingZonderVerlof = () => {
 
 const brutoSalaris = () => {
   const optellen =
-    maandBedragBruto() + ziektekostenBedrag() + aanvullendeZiektekostenBedrag() + ehboVergoeding() + bhvVergoeding() + brutoVergoeding();
+    maandBedragBruto() +
+    ziektekostenBedrag() +
+    aanvullendeZiektekostenBedrag() +
+    ehboVergoeding() +
+    bhvVergoeding() +
+    brutoVergoeding() +
+    vakantieToeslag() +
+    eindejaarsUitkering();
 
   const aftrekken =
     kortingSeniorenverlofBasis() +
     kortingSeniorenverlofExtra() +
+    verminderingEhboBhvSeniorenverlof().verminderingEhbo +
+    verminderingEhboBhvSeniorenverlof().verminderingBhv +
     brutoInhouding() +
     kortingOuderverlof() +
     kortingEhboBhvOuderverlof().ehbo_korting +
@@ -924,6 +1175,20 @@ const brutoSalarisZonderVerlof = () => {
   const aftrekken = brutoInhouding();
 
   return parseFloat(optellen - aftrekken);
+};
+
+const vakantieToeslag = () => {
+  const maandVu = peilMaand();
+  const toeslag = maandBedragBruto() * 12 * 0.08;
+
+  return maandVu == 5 ? toeslag : 0;
+};
+
+const eindejaarsUitkering = () => {
+  const maandEju = peilMaand();
+  const toeslag = maandBedragBruto() * 12 * 0.0833;
+
+  return maandEju == 12 ? toeslag : 0;
 };
 
 const nettoSalaris = () => {
@@ -1388,6 +1653,9 @@ function saveToLocalStorage() {
     soortOuderverlof: document.querySelector("#select-ouderverlof").selectedIndex,
     wtfOuderverlof: document.getElementById("input-wtf-ouderverlof").value,
     ouderverlofAangepastKortingspercentage: document.getElementById("ouderverlof-aangepast-kortingspercentage").value,
+    wtfOnbetaaldVerlof: wtfOnbetaaldVerlof(),
+    keuzeAfwijekendPercentageOv: document.getElementById("select-afwijkend-premiepercentage-ov").checked,
+    afwijkendPercentageOv: document.getElementById("input-afwijkend-premiepercentage-ov").value,
 
     keuzeAnalyse: document.getElementById("keuze-eerst-analyse").checked,
   };
@@ -1399,9 +1667,10 @@ function saveToLocalStorage() {
 
 // #endregion LOCAL STORAGE OPSLAG
 
+// #region CONSOLE OUTPUT
 function bedragenInConsole() {
   // console.clear();
-
+  // return;
   const table = new Table();
   const tableGrondslagen = new Table();
 
@@ -1452,13 +1721,23 @@ function bedragenInConsole() {
       { Soort: "Seniorenverlof", Korting: Math.round(kortingSeniorenverlofBasis() * 100) / 100, "WTF: ": wtfSeniorenverlof() },
       { separator: true },
     );
-  if (seniorenverlofBerekenen())
+  if (seniorenverlofBerekenen() && wtfSeniorenverlof() > 0)
     tableVerlof.addRow(
       { Soort: "Extra Seniorenverlof", Korting: (Math.round(kortingSeniorenverlofExtra() * 100) / 100).toFixed(2), "WTF: ": wtfSeniorenverlof() },
       { separator: true },
     );
+  if (wtfOuderverlof() > 0 && wtfOuderverlof() > 0) {
+    tableVerlof.addRow(
+      { Soort: "Ouderverlof", Korting: (Math.round(kortingOuderverlof() * 100) / 100).toFixed(2), "WTF: ": wtfOuderverlof() },
+      { separator: true },
+    );
+  }
   tableVerlof.addRow(
-    { Soort: "Ouderverlof", Korting: (Math.round(kortingOuderverlof() * 100) / 100).toFixed(2), "WTF: ": wtfOuderverlof() },
+    {
+      Soort: "Onbetaald verlof",
+      Korting: (Math.round(kortingOnbetaaldVerlof() * 100) / 100).toFixed(2),
+      "WTF: ": wtfOnbetaaldVerlof(),
+    },
     { separator: true },
   );
   if (ehboBerekenen())
@@ -1466,7 +1745,7 @@ function bedragenInConsole() {
       {
         Soort: "Korting EHBO onbetaald verlof",
         Korting: document.getElementById("ehbo-vergoeding").checked
-          ? (Math.round(kortingEhboBhvOuderverlof().ehbo_korting * 100) / 100).toFixed(2)
+          ? (Math.round((kortingEhboBhvOuderverlof().ehbo_korting + verminderingEhboBhvSeniorenverlof().verminderingEhbo) * 100) / 100).toFixed(2)
           : 0,
         "WTF: ": 0,
       },
@@ -1476,7 +1755,9 @@ function bedragenInConsole() {
     tableVerlof.addRow(
       {
         Soort: "Korting BHV onbetaald verlof",
-        Korting: document.getElementById("bhv-vergoeding").checked ? (Math.round(kortingEhboBhvOuderverlof().bhv_korting * 100) / 100).toFixed(2) : 0,
+        Korting: document.getElementById("bhv-vergoeding").checked
+          ? (Math.round((kortingEhboBhvOuderverlof().bhv_korting + verminderingEhboBhvSeniorenverlof().verminderingBhv) * 100) / 100).toFixed(2)
+          : 0,
         "WTF: ": 0,
       },
       { separator: true },
@@ -1507,11 +1788,15 @@ function bedragenInConsole() {
   tableBrutoNetto.printTable();
 }
 
+// #endregion CONSOLE OUTPUT
+
 bedragenInConsole();
 
 testBtn1.addEventListener("click", () => {
   console.log(naam(), adres());
 });
+
+// region RESULTAAT WEERGEVEN
 
 function resultaatBerekenen() {
   const brutoZonderVerlof = brutoSalarisZonderVerlof();
@@ -1521,7 +1806,7 @@ function resultaatBerekenen() {
   const nettoMetVerlof = nettoSalaris();
   const teBetalenMetVerlof = teBetalenSalaris();
   const verschil = teBetalenZonderVerlof - teBetalenMetVerlof;
-  console.log("naam :", naam(), "adres:", adres().straat);
+  // console.log("naam :", naam(), "adres:", adres().straat);
 
   $("#resultaat-naam").text(naam() !== "" ? naam() : "");
   $("#resultaat-bruto-salaris-met-verlof").text(FormateerGetallen.valuta(brutoMetVerlof));
@@ -1537,17 +1822,350 @@ function resultaatBerekenen() {
   loonstrookVullen();
 }
 
-function loonstrookVullen() {
-  const brutoMetVerlof = brutoSalaris();
-  $("#loonstrook-naam").text(naam() !== "" ? naam() : "Naam");
-  $("#loonstrook-straat").text(adres().straat !== "" ? adres().straat : "Straatnaam");
-  $("#loonstrook-top-bruto").text(FormateerGetallen.valuta(brutoMetVerlof));
-  $("#loonstrook-top-te-betalen").text(FormateerGetallen.valuta(teBetalenSalaris()));
+// #endregion RESULTAAT WEERGEVEN
 
-  console.log(brutoMetVerlof)
+// #region LOONSTROOK
+const cumulatiefBruto = () => {
+  const vandaag = new Date();
+  const maand = peilMaand();
+
+  const salarisCum = maandBedragBruto() * maand;
+  const perVakantietoeslagCum = periodiekeVakantietoeslag() * maand;
+  const perEindejaarsuitkeringCum = periodiekeEindejaarsuitkering() * maand;
+  const ziektekostenCum = ziektekostenBedrag() * maand;
+  const aanvullendeZiektekostenCum = aanvullendeZiektekostenBerekenen() ? aanvullendeZiektekostenBedrag() * maand : 0;
+  const ehbo = ehboBerekenen() ? ehboVergoeding() * maand : 0;
+  const kortingEhboOnbetaaldVerlofCum = ehboBerekenen() ? kortingEhboBhvOnbetaaldVerlof().ehbo_korting * maand : 0;
+  const bhvCum = bhvBerekenen() ? bhvVergoeding() * maand : 0;
+  const kortingBhvOnbetaaldVerlofCum = bhvBerekenen() ? kortingEhboBhvOnbetaaldVerlof().bhv_korting * maand : 0;
+  const brutoVergoedingBedragCum = brutoVergoedingBerekenen() ? brutoVergoeding() * maand : 0;
+  const brutoInhoudingBedragCum = brutoInhoudingBerekenen() ? brutoInhouding() * -1 * maand : 0;
+  const seniorenverlofKortingCum = seniorenverlofBerekenen() ? (kortingSeniorenverlofBasis() + kortingSeniorenverlofExtra()) * maand : 0;
+  const ouderverlofKortingCum = ouderverlofBerekenen() ? kortingOuderverlof() * maand : 0;
+  // const onbetaaldVerlofKorting = onbetaaldVerlofBerekenen() ? kortingEhboBhvOuderverlof() * maand  : 0;
+  const loonheffingBedragCum = loonheffing() * -1 * maand;
+  const onbetaaldVerlofKortingCum = onbetaaldVerlofBerekenen() ? kortingOnbetaaldVerlof() * -1 * maand : 0;
+  const vakantietoeslagCum = vakantieToeslag();
+  const eindejaarsuitkeringCum = eindejaarsUitkering();
+  const kortingOuderverlofCum = ouderverlofBerekenen() ? kortingOuderverlof() * maand : 0;
+
+  // console.log(periodiekeVakantietoeslag() * maand)
+
+  return {
+    salaris: salarisCum,
+    ziektekosten: ziektekostenCum,
+    aanvullendeZiektekosten: aanvullendeZiektekostenCum,
+    periodiekeVakantietoeslag: perVakantietoeslagCum,
+    seniorenverlofBasis: kortingSeniorenverlofBasis() * maand,
+    ehbo: ehbo,
+    bhv: bhvCum,
+    brutoVergoeding: brutoVergoedingBedragCum,
+    brutoInhouding: brutoInhoudingBedragCum,
+    loonheffing: loonheffingBedragCum,
+    onbetaaldVerlof: onbetaaldVerlofKortingCum,
+    kortingEhboOnbetaaldVerlof: kortingEhboOnbetaaldVerlofCum,
+    kortingBhvOnbetaaldVerlof: kortingBhvOnbetaaldVerlofCum,
+    periodiekeEindejaarsuitkering: perEindejaarsuitkeringCum,
+    vakantietoeslag: vakantietoeslagCum,
+    eindejaarsuitkering: eindejaarsuitkeringCum,
+    ouderverlof: kortingOuderverlofCum,
+  };
+};
+
+const getLoonstrookOnderdelen = () => [
+  {
+    naam: "Salaris (uit uren gewerkt)",
+    aantal: (normaleUrenPerMaand() * wtf()).toFixed(2).replace(".", ","),
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(maandBedragBruto()),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().salaris),
+    normaal: FormateerGetallen.valuta(maandBedragBruto()),
+    bijzonder: null,
+    svw: FormateerGetallen.valuta(maandBedragBruto()),
+  },
+  {
+    naam: "Periodieke vakantietoeslag",
+    aantal: "8,00%",
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(periodiekeVakantietoeslag()),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().periodiekeVakantietoeslag),
+    normaal: FormateerGetallen.valuta(periodiekeVakantietoeslag()),
+    bijzonder: null,
+    svw: FormateerGetallen.valuta(periodiekeVakantietoeslag()),
+  },
+  {
+    naam: "Periodieke eindejaarsuitkering",
+    aantal: "8,33%",
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(periodiekeEindejaarsuitkering()),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().periodiekeEindejaarsuitkering),
+    normaal: FormateerGetallen.valuta(periodiekeEindejaarsuitkering()),
+    bijzonder: null,
+    svw: FormateerGetallen.valuta(periodiekeEindejaarsuitkering()),
+  },
+  {
+    naam: "Vakantietoeslag",
+    aantal: "8,00%",
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(vakantieToeslag()),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().vakantietoeslag),
+    normaal: null,
+    bijzonder: FormateerGetallen.valuta(vakantieToeslag()),
+    svw: FormateerGetallen.valuta(vakantieToeslag()),
+  },
+  {
+    naam: "Eindejaarsuitkering",
+    aantal: "8,33%",
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(eindejaarsUitkering()),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().eindejaarsuitkering),
+    normaal: null,
+    bijzonder: FormateerGetallen.valuta(eindejaarsUitkering()),
+    svw: FormateerGetallen.valuta(vakantieToeslag()),
+  },
+  {
+    naam: "Verg. ziektekostenverzekering",
+    aantal: null,
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(ziektekostenBedrag()),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().ziektekosten),
+    normaal: FormateerGetallen.valuta(ziektekostenBedrag()),
+    bijzonder: null,
+    svw: FormateerGetallen.valuta(ziektekostenBedrag()),
+  },
+  {
+    naam: "Aanv. ziektekostenverzekering",
+    aantal: null,
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(aanvullendeZiektekostenBedrag()),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().aanvullendeZiektekosten),
+    normaal: FormateerGetallen.valuta(aanvullendeZiektekostenBedrag()),
+    bijzonder: null,
+    svw: FormateerGetallen.valuta(aanvullendeZiektekostenBedrag()),
+  },
+  {
+    naam: "Vermin. salaris (uren ouderschapsverlof)", 
+    aantal: (wtfOuderverlof() * contracturenPeriode()).toFixed(2).replace(".", ","),
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(kortingOuderverlof() * -1),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().ouderverlof * -1),
+    normaal: FormateerGetallen.valuta(kortingOuderverlof() * -1),
+    bijzonder: null,
+    svw: FormateerGetallen.valuta(kortingOuderverlof() * -1),
+  },
+  {
+    naam: " Seniorenverlof basis",
+    aantal: FormateerGetallen.percentage(seniorenverlofKortingsPercentage()),
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(kortingSeniorenverlofBasis() * -1),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().seniorenverlofBasis * -1),
+    normaal: FormateerGetallen.valuta(kortingSeniorenverlofBasis() * -1),
+    bijzonder: null,
+    svw: FormateerGetallen.valuta(kortingSeniorenverlofBasis() * -1),
+  },
+  {
+    naam: "Seniorenverlof extra",
+    aantal: FormateerGetallen.percentage(seniorenverlofKortingsPercentage()) + "%",
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(kortingSeniorenverlofExtra() * -1),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().seniorenverlofBasis * -1 + cumulatiefBruto().seniorenverlofExtra * -1),
+    normaal: FormateerGetallen.valuta(kortingSeniorenverlofExtra() * -1),
+    bijzonder: null,
+    svw: FormateerGetallen.valuta(kortingSeniorenverlofExtra() * -1),
+  },
+  {
+    naam: "Vermin. salaris (uren onbetaald verlof)",
+    aantal: (wtfOnbetaaldVerlof() * contracturenPeriode()).toFixed(2).replace(".", ","),
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(kortingOnbetaaldVerlof() * -1),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().onbetaaldVerlof),
+    normaal: FormateerGetallen.valuta(kortingOnbetaaldVerlof() * -1),
+    bijzonder: null,
+    svw: FormateerGetallen.valuta(kortingOnbetaaldVerlof() * -1),
+  },
+  {
+    naam: "EHBO vergoeding",
+    aantal: null,
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(ehboVergoeding()),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().ehbo),
+    normaal: FormateerGetallen.valuta(ehboVergoeding()),
+    bijzonder: null,
+    svw: FormateerGetallen.valuta(ehboVergoeding()),
+  },
+  {
+    naam: "Vermin. EHBO vergoeding ivm onbetaald dgn/uren",
+    aantal: null,
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(kortingEhboBhvOnbetaaldVerlof().ehbo_korting * -1),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().ehbo * -1),
+    normaal: FormateerGetallen.valuta(kortingEhboBhvOnbetaaldVerlof().ehbo_korting * -1),
+    bijzonder: null,
+    svw: FormateerGetallen.valuta(kortingEhboBhvOnbetaaldVerlof().bhv_korting * -1),
+  },
+  {
+    naam: "BHV vergoeding",
+    aantal: null,
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(bhvVergoeding()),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().bhv),
+    normaal: FormateerGetallen.valuta(bhvVergoeding()),
+    bijzonder: null,
+    svw: FormateerGetallen.valuta(bhvVergoeding()),
+  },
+  {
+    naam: "Vermin. BHV vergoeding ivm onbetaald dgn/uren",
+    aantal: null,
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(kortingEhboBhvOnbetaaldVerlof().bhv_korting * -1),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().kortingBhvOnbetaaldVerlof * -1),
+    normaal: FormateerGetallen.valuta(kortingEhboBhvOnbetaaldVerlof().bhv_korting * -1),
+    bijzonder: null,
+    svw: FormateerGetallen.valuta(kortingEhboBhvOnbetaaldVerlof().bhv_korting * -1),
+  },
+  {
+    naam: "Bruto vergoeding",
+    aantal: null,
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(brutoVergoeding()),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().brutoVergoeding),
+    normaal: FormateerGetallen.valuta(brutoVergoeding()),
+    bijzonder: null,
+    svw: FormateerGetallen.valuta(brutoVergoeding()),
+  },
+  {
+    naam: "Bruto inhouding",
+    aantal: null,
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(brutoInhouding() * -1),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().brutoInhouding),
+    normaal: FormateerGetallen.valuta(brutoInhouding() * -1),
+    bijzonder: null,
+    svw: FormateerGetallen.valuta(brutoInhouding() * -1),
+  },
+  {
+    naam: "BRUTOLOON",
+    aantal: null,
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(brutoSalaris()),
+    cumulatief: null,
+    normaal: null,
+    bijzonder: null,
+    svw: null,
+  },
+
+  {
+    naam: "Loonheffing",
+    aantal: null,
+    basis: null,
+    brutoNetto: FormateerGetallen.valuta(loonheffing() * -1),
+    cumulatief: FormateerGetallen.valuta(cumulatiefBruto().loonheffing),
+    normaal: FormateerGetallen.valuta(loonheffing() * -1),
+    bijzonder: null,
+    svw: FormateerGetallen.valuta(loonheffing() * -1),
+  },
+];
+
+function heeftBrutoNettoWaarde(waarde) {
+  if (waarde === null || waarde === undefined || waarde === "") return false;
+  if (typeof waarde === "number") return waarde !== 0;
+  if (typeof waarde !== "string") return true;
+
+  const schoon = waarde.trim();
+  if (!schoon) return false;
+
+  const numeriek = Number(
+    schoon
+      .replace(/[^\d,.-]/g, "")
+      .replace(/\./g, "")
+      .replace(",", "."),
+  );
+  if (Number.isNaN(numeriek)) return true;
+
+  return numeriek !== 0;
+}
+
+function loonstrookOnderdelenNaarTabelRijen() {
+  const tbody = document.getElementById("loonstrook-body");
+  if (!tbody) return;
+
+  const onderdelen = getLoonstrookOnderdelen();
+  tbody.innerHTML = "";
+
+  onderdelen
+    .filter((onderdeel) => heeftBrutoNettoWaarde(onderdeel.brutoNetto))
+    .forEach((onderdeel, index) => {
+      const row = document.createElement("tr");
+      row.className = `border-b border-gray-200 ${index % 2 === 0 ? "bg-white" : "bg-(--loonstrook-lichterblauw)"}`;
+
+      const waarden = [
+        onderdeel.naam,
+        onderdeel.aantal,
+        onderdeel.basis,
+        onderdeel.brutoNetto,
+        onderdeel.cumulatief,
+        onderdeel.normaal,
+        onderdeel.bijzonder,
+        onderdeel.svw,
+      ];
+
+      const isBrutoloonRij = onderdeel.naam === "BRUTOLOON";
+
+      waarden.forEach((waarde, index) => {
+        const cell = document.createElement("td");
+        cell.className = "px-4 py-2";
+        const content = document.createElement("span");
+        content.className = index === 0 ? "loon-align-left" : "loon-align-right";
+        cell.className = index === 3 ? "border-x! border-(--loonstrook-blauw)! pl-4 pr-1 py-2" : "px-4 py-2";
+        if (isBrutoloonRij) content.classList.add("font-bold");
+        content.textContent = waarde === null || waarde === undefined ? "" : String(waarde);
+        cell.appendChild(content);
+        row.appendChild(cell);
+      });
+
+      tbody.appendChild(row);
+    });
+}
+
+//* LOONSTROOK FUNCTIES
+const maandEnJaar = () => {
+  const vandaag = new Date();
+  const peildatum = new Date(document.getElementById("peildatum").value);
+  const teGebruikenDatum = peildatum ? peildatum : vandaag;
+  const maand = teGebruikenDatum.toLocaleString("default", { month: "long" });
+
+  const jaar = teGebruikenDatum.getFullYear();
+  return `${capitalize(maand)} ${jaar}`;
+};
+
+$("#maand-en-jaar").text(maandEnJaar());
+
+function loonstrookVullen() {
+  $("#maand-en-jaar").text(maandEnJaar());
+  const brutoMetVerlof = brutoSalaris();
+  const teBetalenMetVerlof = teBetalenSalaris();
+  const salarisUitUrenGewerkt = maandBedragBruto();
+  const normaleUrenPerMaandVoorStrook = normaleUrenPerMaand() * wtf();
+
+  $("#loonstrook-naam").text(naam() !== "" ? naam() : "P.F. Loonstrook");
+  $("#loonstrook-straat").text(adres().straat !== "" ? adres().straat : "Anne de Vriesstraat 70");
+  $("#loonstrook-postcode-en-plaats").text(adres().postcode !== "" ? adres().postcode + " " + adres().woonplaats : "9402 NT Assen");
+  $("#loonstrook-woonland").text(adres().woonland !== "" ? adres().woonland : "Woonland: Nederland");
+
+  $("#loonstrook-top-bruto").text(FormateerGetallen.valuta(brutoMetVerlof));
+  $("#loonstrook-top-te-betalen").text(FormateerGetallen.valuta(teBetalenMetVerlof));
+  $("#loonstrook-salaris-uren-gewerkt").text(FormateerGetallen.valuta(salarisUitUrenGewerkt));
+  $("#loonstrook-uren-gewerkt").text(FormateerGetallen.decimalen2(normaleUrenPerMaandVoorStrook).replace(".", ","));
+  loonstrookOnderdelenNaarTabelRijen();
+
+  // console.log('Bruto met: ',brutoMetVerlof, '', 'Te betalen met: ', teBetalenMetVerlof);
+  // console.log(normaleUrenPerMaand() * 0.6);
+  // console.log(getLoonstrookOnderdelen());
+  // console.log('element:',$("#loonstrook-postcode-en-plaats"),adres().postcode !== "" ? adres().postcode + " " + adres().woonplaats : "9402 NT, Assen")onbetaald-verlof-actief
 }
 
 loonstrookVullen();
+// endregion LOONSTROOK
 
 // resultaatBerekenen();
 
@@ -1587,12 +2205,9 @@ modalPrivacy.addEventListener("click", (e) => {
   }
 });
 
-const modalAfwijkendePercentageOv = document.getElementById("modal-info-afwijkend-percentage-ov");
-
 document.getElementById("btn-info-afwijkend-percentage-ov").onclick = () => {
   modalAfwijkendePercentageOv.classList.remove("hidden");
   modalAfwijkendePercentageOv.classList.add("flex");
-  console.log("test afw perc");
 };
 
 document.getElementById("closeModal-afwijkend-percentage-ov").onclick = () => {
@@ -1643,6 +2258,14 @@ modalLoonstrook.addEventListener("click", (e) => {
   }
 });
 
+$("#btn-volledig-resultaat").on("click", function () {
+  resultaatBerekenen();
+  loonstrookVullen();
+  modalResultaat.classList.add("hidden");
+  modalLoonstrook.classList.remove("hidden");
+  modalLoonstrook.classList.add("flex");
+});
+
 $("#seniorenverlof-actief").on("change", function () {
   $("#seniorenverlof-sectie").toggleClass("hidden grid");
   if (!$("#seniorenverlof-actief").prop("checked")) {
@@ -1658,6 +2281,8 @@ $("#ouderverlof-actief").on("change", function () {
     disableOnnodigeElementen();
   }
   dubbelCheckVerlof();
+  resultaatBerekenen();
+  loonstrookVullen();
 });
 
 function toggleVerlofSecties() {
@@ -1671,14 +2296,8 @@ function toggleVerlofSecties() {
 
 toggleVerlofSecties();
 
-//* LOONSTROOK FUNCTIES
-const maandEnJaar = () => {
-  const vandaag = new Date();
-  const maand = vandaag.toLocaleString("default", { month: "long" });
-  const jaar = vandaag.getFullYear();
-  return `${capitalize(maand)} ${jaar}`;
-};
-
-$("#maand-en-jaar").text(maandEnJaar());
-
 $("#loonstrook-naam").text(naam() !== "" ? naam() : "Naam");
+
+import chalk from "chalk";
+
+console.log(chalk.blue.bgWhite("Hello world!"));

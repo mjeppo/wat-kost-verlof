@@ -16,7 +16,10 @@ export const bedragen =
     "BHV": 6.89,
     "thuiswerk": 8.56,
     "telefoonvergoeding": 10.00,
-    " thuiswerkvergoeding": 8.73,
+    "thuiswerkvergoeding": 8.73,
+    "percentage_werknemersdeel_pensioen": 0.4,
+    "uren_per_week": 36.86,
+    "weken_per_maand": 4.25,
     }
     
 export const aov_premies_strings = {

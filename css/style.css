@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+:root {
+  --loonstrook-blauw: #2b6cbe;
+  --loonstrook-lichtblauw: #8bb4e4;
+  --loonstrook-lichterblauw: #eff4fc;
+}
+
+@font-face {
+  font-family: "DejaVu Sans";
+  src: url("../assets/fonts/DejaVuSans.ttf") format("truetype");
+  font-weight: lighter;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: Ubuntu;
+  src: url("../assets/fonts/Ubuntu-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: "Ubuntu", sans-serif;
+}
+
+.select2-selection {
+  height: 40px !important;
+  border: 1px solid lightgray !important;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1) !important;
+  padding-left: 5px !important;
+  padding-top: 5px;
+}
+
+.select2-results__options {
+  max-height: 400px !important; /* standaard is ~200px */
+}
+
+.kleine-knop {
+  height: 30px;
+  width: 100px;
+  padding: 5px;
+  background-color: #f97316; /* Tailwind's orange-400 */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  box-shadow:
+    inset 0 0 5px rgba(255, 255, 255, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.kleine-knop:hover {
+  background-color: #f87171; /* Tailwind's red-400 */
+  box-shadow:
+    inset 0 0 5px rgba(255, 255, 255, 0.7),
+    0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.kleine-knop:active {
+  transform: translateY(2px);
+}
+
+.verborgen {
+  display: none;
+  content: "Specificeren1";
+}
+
+.foute-input {
+  background-color: red !important;
+}
+
+.sus-input {
+  background-color: orange !important;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.opslag.actief {
+  background-image: url("src/img/keep.png");
+  background-size: contain;
+  width: 17px;
+  height: 24px;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: brightness(1.8);
+}
+
+.opslag.inactief {
+  background-image: url("src/img/keepoff.png");
+  background-size: contain;
+  width: 17px;
+  height: 24px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.opslag:hover {
+  filter: brightness(2.1);
+}
+
+.verborgen-peil1 {
+  display: none !important;
+}
+
+.roboto {
+  font-family: "Roboto", sans-serif;
+}
+
+#table-loonstrook {
+  --loonstrook-eerste-kolom: 250px;
+  width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+#table-loonstrook th:first-child,
+#table-loonstrook td:first-child {
+  min-width: var(--loonstrook-eerste-kolom);
+  width: var(--loonstrook-eerste-kolom);
+  white-space: nowrap;
+}
+
+#table-loonstrook .loon-align-left,
+#table-loonstrook .loon-align-right {
+  display: flex;
+  width: 100% !important;
+}
+
+#table-loonstrook .loon-align-left {
+  justify-content: flex-start;
+  text-align: left !important;
+}
+
+#table-loonstrook .loon-align-right {
+  justify-content: flex-end;
+  text-align: right !important;
+}
+
+#table-loonstrook th,
+#table-loonstrook td {
+  box-sizing: border-box;
+}
+
+#table-loonstrook th:not(:first-child),
+#table-loonstrook td:not(:first-child) {
+  width: calc((100% - var(--loonstrook-eerste-kolom)) / 7);
+}

@@ -23,7 +23,7 @@ export class FormateerGetallen {
   }
 
   static percentage(getal) {
-    let b = new Intl.NumberFormat("nl", { style: "percent", maximumFractionDigits: 2 }).format(getal);
+    let b = new Intl.NumberFormat("nl", { style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(getal);
     return b;
   }
 

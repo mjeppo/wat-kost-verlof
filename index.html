@@ -3,15 +3,16 @@
 ██▄  ▄██   ▄▄ ▄▄▄▄▄ ▄▄▄▄  ██     ██  ▄▄▄  ▄▄▄▄  ▄▄▄▄▄ 
 ██ ▀▀ ██   ██ ██▄▄  ██▄█▀ ██ ▄█▄ ██ ██▀██ ██▄█▄ ██▄▄  
 ██    ██ ▄▄█▀ ██▄▄▄ ██     ▀██▀██▀  ██▀██ ██ ██ ██▄▄▄ 
--->
+MjepWare-->
 <html lang="nl">
 
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="icon" type="image/svg+xml" href="/vite.svg">
-    <link rel="stylesheet" href="/src/style.css">
+    <link rel="icon" type="image/svg+xml" href="/src/img/logo_dcterra_02.png">
+
+    <!--* Stylesheets importeren-->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
       rel="stylesheet"
       integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
@@ -23,23 +24,33 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
       integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
       crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
+      rel="stylesheet">
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet">
+
+    <!--* Scripts importeren-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/js/all.min.js"
       integrity="sha512-6BTOlkauINO65nLhXhthZMtepgJSghyimIalb+crKRPhvhmsCdnIuGcVbR5/aQY2A+260iC1OPy1oCdB6pSSwQ=="
       crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
-      rel="stylesheet">
-    <title>Wat kost verlof</title>
+
+    <title>Wat kost verlof?</title>
   </head>
   <body>
     <div id="app">
       <div id="main" class="p-2">
         <div class="mb-4 bg-slate-200 p-4 rounded m-2 max-w-230">
-          <h1>Wat kost verlof?</h1>
+          <div class="flex justify-content-between">
+            <h1>Wat kost verlof?</h1>
+            <img src="https://www.dcterra.nl/media/4todlngg/logo-dcterra.svg" width="200" alt>
+          </div>
           <div class="py-2 text-[1.5rem] font-medium block">Bereken wat het kost om verlof op te
             nemen <span
               class="text-sm">(seniorenverlof/ouderverlof/bijzonder
@@ -233,7 +244,7 @@
                 class="form-control h-10 shadow-sm placeholder:text-sm! updater"
                 placeholder="ABP Jaarinkomen"
                 aria-label="abp-jaarinkomen">
-              <span class="ml-2 "><button class="kleine-knop mt-2 updater"
+              <span class="ml-2 "><button class="kleine-knop mt-2 updater transition-transform"
                   id="abp-jaarinkomen-berekenen"
                   title="Neem het jaarinkomen over van jouw loonstrook. Heb je geen loonstrook klik dan op berekenen om het jaarloon te berekenen op basis van de hierboven ingevulde gegevens. Let op, dit is minder accuraat!">Berekenen</button></span>
               <label for="loonheffingskorting" class="my-2">Loonheffingskorting toepassen
@@ -413,6 +424,7 @@
             <section id="verlof" class=" bg-slate-100 p-3 rounded m-2 max-w-230">
               <h2 class="hidden">Verlof</h2>
               <div class="text-[1.5rem] font-medium block">Verlof</div>
+
               <!--? SENIORENVERLOF -->
               <section id="senioren-verlof" class="bg-slate-200 p-2 rounded">
                 <h3 class="hidden">Seniorenverlof</h3>
@@ -440,17 +452,29 @@
                       berekening)</span></div>
                   <span id="seniorenverlof-berekende-wtf" class="ml-2"></span>
                   <span class="ml4 text-sm ml-2 leadin-13" id="senVerlofBerekening"></span>
-                  <label for="input-aangepaste-wtf" class="leading-12 mt-3">Aangepaste
-                    wtf</label>
-                  <input type="text"
-                    class="form-control h-10 shadow-sm placeholder:text-sm! w-32!  no-check1 mt-2 updater"
-                    id="input-aangepaste-wtf" name="Aangepaste wtf">
+
+                  <div class="col-span-2 grid grid-cols-[50px_200px_1fr]">
+                    <input
+                      type="checkbox"
+                      class="form-check-input mt-3 updater"
+                      id="seniorenverlof-actief"
+                      checked>
+                    <label
+                      for="input-aangepaste-wtf"
+                      class="leading-7 mt-3">Aangepaste
+                      wtf</label>
+                    <input type="text"
+                      class="form-control h-10 shadow-sm placeholder:text-sm! w-32!  no-check1 mt-2 updater"
+                      id="input-aangepaste-wtf" name="Aangepaste wtf"
+                      disabled>
+                  </div>
                   <span class="leading-13 text-sm pl-2">Indien leeg wordt de standaard
                     berekende wtf
                     <span id="standaard-wtf-seniorenverlof"></span> gebruikt</span>
                 </div>
               </section>
-              <!--* OUDERVERLOF -->
+
+              <!--? OUDERVERLOF -->
               <section id="ouder-verlof" class="mt-4 bg-slate-200 p-2 rounded">
                 <h4 class="hidden">Ouderverlof</h4>
                 <div class="grid grid-cols-[30px_150px_50px_1fr]">
@@ -490,6 +514,10 @@
                       verlof)</span></div>
                   <span id="ouderverlof-kortingspercentage" class="mt-3 ml-2 "></span>
                   <span></span>
+                  <div class="mt-2">Berekende korting <span
+                      class="text-xs italic">(maand)</span></div>
+                  <span id="ouderverlof-berekende-korting" class="mt-2 ml-2"></span>
+                  <span></span>
                   <label for="ouderverlof-aangepast-kortingspercentage"
                     class="mt-3">Aangepast
                     kortingspercentage</label>
@@ -507,12 +535,13 @@
                     CAO MBO</span>
                 </div>
               </section>
+
               <!--* ONBETAALD VERLOF -->
               <section id="onbetaald-verlof" class="mt-4 bg-slate-200 p-2 rounded">
                 <h4 class="hidden">Onbetaald (bijzonder) verlof</h4>
                 <div class="grid grid-cols-[30px_350px_50px_1fr]">
                   <input type="checkbox" class="form-check-input mt-2 mb-3 updater"
-                    id="onbetaald-verlof-actief" checked>
+                    id="onbetaald-verlof-actief">
                   <label for="onbetaald-verlof-actief" class="pt-1 text-[1.5rem] font-medium block">
                     Onbetaald (bijzonder) verlof
                   </label>
@@ -529,18 +558,25 @@
                     id="input-wtf-onbetaald-verlof"
                     name="Aangepaste wtf">
                   <span></span>
-                  <div class="mt-3 col-span-3">Afwijkende percentage werknemersdeel
+                  <div class="leading-16 col-span-3">Afwijkende percentage werknemersdeel
                     pensioenpremies
                     <button class="ml-2" id="btn-info-afwijkend-percentage-ov"><i
                         class="fa-solid fa-circle-info cursor-pointer hover:text-blue-600">
                       </i>
                     </button></div>
-
                   <input type="checkbox"
-                    class="form-check-input mt-3 mb-1 updater"
-                    id="select-afwijkend-kortingspercentage-ov"
-                    name="Afwijkend kortingspercentage onbetaald verlof">
-
+                    class="form-check-input mt-4 mb-1 updater"
+                    id="select-afwijkend-premiepercentage-ov"
+                    name="Afwijkend premiepercentage onbetaald verlof">
+                  <div id><input
+                      type="number"
+                      min="1"
+                      max="100"
+                      class="form-control h-10 shadow-sm placeholder:text-sm! w-32! mt-2 no-check1 updater"
+                      id="input-afwijkend-premiepercentage-ov"
+                      name="Afwijkend premiepercentage onbetaald verlof"
+                      value="0"
+                      disabled></div>
                 </div>
               </section>
             </section>
@@ -719,9 +755,9 @@
 
         <!--& Loonstrook Modal -->
         <div id="modal-loonstrook"
-          class="fixed inset-0 bg-black/50 hidden1 items-center justify-center text-lg">
-          <div class="bg-white max-w-4xl w-full">
-            <div id="loonstrook-container" class="loonstrook-container">
+          class="fixed inset-0 bg-black/50 hidden items-center justify-center text-lg roboto text-(--loonstrook-blauw) ">
+          <div class="bg-white max-w-4xl w-full h-200! ">
+            <div id="loonstrook-container" class="loonstrook-container h-full flex flex-col">
 
               <div
                 class="bg-(--loonstrook-blauw) text-white px-4 pt-2 font-semibold flex justify-between"><div><span>Loonstrook</span>
@@ -730,43 +766,80 @@
                   strook)</span></div>
 
               <div
-                class="bg-(--loonstrook-lichterblauw)  grid grid-cols-[1fr_250px]">
-                <div id="persoonsgegevens" class="px-4 pt-1">
+                class="bg-(--loonstrook-lichterblauw)  grid grid-cols-[1fr_280px] pb-2">
+                <div id="persoonsgegevens" class="px-4 pt-1 font-normal text-[16px]">
                   <div id="loonstrook-naam"></div>
                   <div id="loonstrook-straat"></div>
+                  <div id="loonstrook-postcode-en-plaats"></div>
+                  <div id="loonstrook-woonland"></div>
                 </div>
-                <div class="mr-4 flex justify-content-between pt-2">
-                  <div class=""><img src="src/img/0.jpg" width="70" alt></div>
-                  <div class=""><img src="src/img/1.jpg" width="80" alt></div>
+                <div class="mr-4 flex justify-around pt-2">
+                  <div class><img src="src/img/0.jpg" width="70" alt></div>
+                  <div class><img src="src/img/1.jpg" width="80" alt></div>
                 </div>
                 <div></div>
-                <div class="mr-4 mb-auto flex justify-between">
-                  <span id="loonstrook-top-bruto"></span> <span id="loonstrook-top-tebetalen"></span></div>
+                <div class="mr-4 mb-auto -mt-1 flex justify-around  text-[24px] font-bold">
+                  <span id="loonstrook-top-bruto" class="w-full text-center"></span>
+                  <span id="loonstrook-top-te-betalen" class="w-full text-center"></span>
+                </div>
+                <div></div>
+                <div class="mr-4 mb-auto flex justify-around  text-[10px] text-center ">
+                  <span class="w-full">BRUTOLOON</span>
+                  <span class="w-full">TE BETALEN LOON</span>
+                </div>
+              </div>
+              <div>
+                <table id="table-loonstrook"
+                  class="w-full text-(--loonstrook-blauw) text-xs">
+                  <thead class="bg-(--loonstrook-blauw) text-white text-xs">
+                    <tr>
+                      <th class="px-4 py-2"><span
+                          class="loon-align-left text-uppercase">Omschrijving</span></th>
+                      <th class="px-4 py-2"><span
+                          class="loon-align-right text-uppercase">Aantal</span></th>
+                      <th class="px-4 py-2"><span
+                          class="loon-align-right text-uppercase">Basis</span></th>
+                      <th class="pl-4 pr-3 py-2"><span
+                          class="loon-align-right text-uppercase">Bruto/<br>Netto </span></th>
+                      <th class="px-4 py-2"><span
+                          class="loon-align-right text-uppercase">Cumulatief</span></th>
+                      <th class="px-4 py-2"><span
+                          class="loon-align-right text-uppercase">Normaal</span></th>
+                      <th class="px-4 py-2"><span
+                          class="loon-align-right text-uppercase">Bijzonder</span></th>
+                      <th class="px-4 py-2"><span
+                          class="loon-align-right text-uppercase">SVW</span></th>
+                    </tr>
+                  </thead>
+                  <tbody id="loonstrook-body">
+                    <!-- Dynamische rijen worden hier toegevoegd -->
+                  </tbody>
+                </table>
               </div>
 
+              <div class="flex justify-end p-2 border-t mt-auto">
+                <button id="closeModalLoonstrook" class="btn btn-danger">Sluiten</button>
+              </div>
             </div>
 
-            <button id="closeModalLoonstrook" class="btn btn-danger">Sluiten</button>
           </div>
 
         </div>
 
       </div>
+      <button id="btn-resultaat" class="btn btn-info">Berekenen</button>
+      <button id="btn-loonstrook" class="btn btn-info">Loonstrook</button>
+      <div class="mt-5"><button class="btn btn-info"
+          id="test-button-1">TEST2</button>
+      </div>
+      <script type="module" src="./src/main.js"></script>
+      <script type="module" src="./src/pdf.js"></script>
+      <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"
+        defer></script>
 
-    </div>
-    <button id="btn-resultaat" class="btn btn-info">Berekenen</button>
-    <button id="btn-loonstrook" class="btn btn-info">Loonstrook</button>
-    <div class="mt-5"><button class="btn btn-info"
-        id="test-button-1">TEST2</button>
-    </div>
-    <script type="module" src="/src/main.js"></script>
-    <script type="module" src="/src/pdf.js"></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-      crossorigin="anonymous"
-      defer></script>
+    </body>
 
-  </body>
-
-</html>
+  </html>
